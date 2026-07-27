@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>&lt;adyen-ai-mark&gt; — reference</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0a1938; color: #e8ecf5; margin: 0; padding: 48px 32px 80px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  .sub { color: #8b98b8; font-size: 14px; margin: 0 0 36px; }
+  h2 { font-size: 15px; margin: 40px 0 14px; color: #e8ecf5; }
+  .row { display: flex; align-items: center; gap: 32px; flex-wrap: wrap; }
+  .tile {
+    background: #fff; border-radius: 18px; padding: 28px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 18px 40px rgba(0,0,0,.3);
+  }
+  .tile.dark { background: #0f2145; border: 1px solid #24345a; }
+  .btn {
+    border: 1px solid #2c3d63; background: #17294f; color: #e8ecf5;
+    font: inherit; font-size: 13px; font-weight: 600;
+    padding: 9px 18px; border-radius: 9px; cursor: pointer;
+  }
+  .btn:hover { background: #1e315a; }
+  pre {
+    background: #0f2145; border: 1px solid #24345a; border-radius: 12px;
+    padding: 16px 18px; overflow-x: auto; font-size: 12.5px; line-height: 1.6;
+    color: #cbd6ee;
+  }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #24345a; }
+  th { color: #8b98b8; font-weight: 600; }
+  td code { color: #7ee2ad; }
+  .note { color: #8b98b8; font-size: 13px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>&lt;adyen-ai-mark&gt;</h1>
+  <p class="sub">Adyen Intelligence prop-to-icon animation — a drop-in custom element.</p>
+
+  <h2>Live</h2>
+  <div class="row">
+    <div class="tile"><adyen-ai-mark id="big" size="180px" duration="1s" click-to-play></adyen-ai-mark></div>
+    <div class="tile dark"><adyen-ai-mark id="small" size="64px" duration="1s" click-to-play></adyen-ai-mark></div>
+    <div>
+      <button class="btn" id="playAll">Play both</button>
+      <p class="note" style="margin:12px 0 0;max-width:230px">Or click a mark directly —<br>they have <code>click-to-play</code>.</p>
+    </div>
+  </div>
+
+  <h2>Use it</h2>
+  <pre><code>&lt;script src="ai-mark.js"&gt;&lt;/script&gt;
+
+&lt;!-- idle flower, plays when you call play() --&gt;
+&lt;adyen-ai-mark&gt;&lt;/adyen-ai-mark&gt;
+
+&lt;!-- plays once as soon as it appears --&gt;
+&lt;adyen-ai-mark size="26px" duration="1s" autoplay&gt;&lt;/adyen-ai-mark&gt;
+
+&lt;!-- replays whenever it is clicked --&gt;
+&lt;adyen-ai-mark size="120px" click-to-play&gt;&lt;/adyen-ai-mark&gt;
+
+&lt;script&gt;
+  const mark = document.querySelector('adyen-ai-mark');
+  mark.play();                     // run the morph from the top
+  mark.reset();                    // back to the idle flower
+  mark.addEventListener('settled', () =&gt; { /* morph finished */ });
+&lt;/script&gt;</code></pre>
+
+  <h2>Attributes</h2>
+  <table>
+    <tr><th>Attribute</th><th>Default</th><th>What it does</th></tr>
+    <tr><td><code>size</code></td><td><code>26px</code></td><td>CSS width of the mark (height follows).</td></tr>
+    <tr><td><code>duration</code></td><td><code>1s</code></td><td>Length of the morph.</td></tr>
+    <tr><td><code>color</code></td><td><code>#00D16A</code></td><td>Fill colour.</td></tr>
+    <tr><td><code>autoplay</code></td><td>—</td><td>Play once when the element connects.</td></tr>
+    <tr><td><code>click-to-play</code></td><td>—</td><td>Clicking the mark replays it.</td></tr>
+  </table>
+
+  <h2>The sequence</h2>
+  <p class="note">
+    <strong>Idle</strong> — four petals scaled to the footprint of the finished mark, flickering like a candle flame every 5s.<br>
+    <strong>Play</strong> — the flower shrinks to size while three petals swirl counter-clockwise around a shared hinge and fold
+    under the fixed top-right anchor petal. The <em>a</em> then grows out from behind the letter gap while the <em>i</em> stem rises
+    into the anchor, which becomes the i-dot. It settles into the mark and keeps flickering.<br>
+    Honours <code>prefers-reduced-motion</code>: renders the static mark with no motion.
+  </p>
+</div>
+
+<script src="ai-mark.js"></script>
+<script>
+  document.getElementById('playAll').addEventListener('click', function () {
+    document.querySelectorAll('adyen-ai-mark').forEach(function (m) { m.play(); });
+  });
+</script>
+</body>
+</html>
