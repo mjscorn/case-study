@@ -141,9 +141,9 @@
     '<svg class="mark" part="mark" viewBox="0 0 101 66" fill="none" xmlns="http://www.w3.org/2000/svg">',
     '  <defs>',
     /* keeps the "a" hidden in the letter gap until it grows out */
-    '    <clipPath id="aClip"><rect x="-40" y="-30" width="105" height="130"/></clipPath>',
+    '    <clipPath id="aClip"><rect x="-40" y="-30" width="105" height="130" shape-rendering="crispEdges"/></clipPath>',
     /* hides the i-stem below its resting baseline (y=65.5) as it rises */
-    '    <clipPath id="iClip"><rect x="60" y="-40" width="60" height="105.5"/></clipPath>',
+    '    <clipPath id="iClip"><rect x="60" y="-40" width="60" height="105.5" shape-rendering="crispEdges"/></clipPath>',
     '  </defs>',
     '  <g clip-path="url(#aClip)">',
     '    <path class="a" d="M53 0.5H0.5V16.5H37.5V48.5H26.5V27H0.5V53.5C0.5 60.1274 5.87259 65.5 12.5 65.5H65V12.5C65 5.87258 59.6274 0.5 53 0.5Z"/>',
@@ -160,12 +160,18 @@
     '</svg>'
   ].join('\n');
 
+  var _uid = 0;
   var AdyenAiMark = function () {
     var self = Reflect.construct(HTMLElement, [], AdyenAiMark);
     var root = self.attachShadow({ mode: 'open' });
     root.appendChild(TEMPLATE.content.cloneNode(true));
     self._mark = root.querySelector('.mark');
     self._settleTimer = null;
+    var id = ++_uid;
+    var aC = root.querySelector('#aClip');
+    var iC = root.querySelector('#iClip');
+    if (aC) { aC.id = 'aClip' + id; root.querySelector('[clip-path="url(#aClip)"]').setAttribute('clip-path', 'url(#aClip' + id + ')'); }
+    if (iC) { iC.id = 'iClip' + id; root.querySelector('[clip-path="url(#iClip)"]').setAttribute('clip-path', 'url(#iClip' + id + ')'); }
     return self;
   };
   AdyenAiMark.prototype = Object.create(HTMLElement.prototype);

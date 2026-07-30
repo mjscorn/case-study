@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Thinking Spinner</title>
+<style>
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .thinking-spinner {
+    width: 20px; height: 20px;
+    flex-shrink: 0;
+  }
+
+  .thinking-spinner svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+
+  /* Same pivot as ai-mark.js — center of the 4-petal grid */
+  .petal {
+    transform-box: view-box;
+    transform-origin: 70px 24.5px;
+  }
+
+  .p-tr { animation: anchorAnim 3.15s linear infinite; }
+  .p-tl { animation: tlAnim    3.15s linear infinite; }
+  .p-bl { animation: blAnim    3.15s linear infinite; }
+  .p-br { animation: brAnim    3.15s linear infinite; }
+
+  /* Anchor: spins, overshoots, settles while petals collapse */
+  @keyframes anchorAnim {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    38%   { transform: rotate(358deg); }
+    42%   { transform: rotate(360deg); }
+    52%   { transform: rotate(360deg); }
+    57%   { transform: rotate(352deg); }
+    62%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+
+  /* BR: collapses first — spring-back carries into fold */
+  @keyframes brAnim {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    42%   { transform: rotate(270deg) translate(4.4px, 9.1px) scale(.55); }
+    52%   { transform: rotate(270deg) translate(4.4px, 9.1px) scale(.55); }
+    67%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+
+  /* BL: mid swing — follows BR */
+  @keyframes blAnim {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    48%   { transform: rotate(180deg) translate(-7.4px, 6.1px) scale(.55); }
+    52%   { transform: rotate(180deg) translate(-7.4px, 6.1px) scale(.55); }
+    71%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+
+  /* TL: largest swing — last to fold */
+  @keyframes tlAnim {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    50%   { transform: rotate(90deg) translate(-4.4px, -9.1px) scale(.55); }
+    52%   { transform: rotate(90deg) translate(-4.4px, -9.1px) scale(.55); }
+    75%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+
+  .thinking-text {
+    font-size: 13px;
+    color: #727E85;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .thinking-timer {
+    font-variant-numeric: tabular-nums;
+    min-width: 20px;
+  }
+
+  .thinking-dot { color: #bcc3cd; }
+  .thinking-label { color: #9ca3af; }
+</style>
+</head>
+<body>
+  <div class="thinking">
+    <div class="thinking-spinner">
+      <svg viewBox="30 -15 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g class="petal p-tl"><path transform="translate(24 -15.5)" d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.4"/></g>
+        <g class="petal p-bl"><path transform="translate(24 -15.5)" d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.6"/></g>
+        <g class="petal p-br"><path transform="translate(24 -15.5)" d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.8"/></g>
+        <g class="petal p-tr"><path transform="translate(24 -15.5)" d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/></g>
+      </svg>
+    </div>
+    <div class="thinking-text">
+      <span class="thinking-timer" id="timer">0s</span>
+      <span class="thinking-dot">&middot;</span>
+      <span class="thinking-label">Thinking...</span>
+    </div>
+  </div>
+
+  <script>
+    var start = Date.now();
+    var timerEl = document.getElementById('timer');
+    setInterval(function () {
+      var total = Math.floor((Date.now() - start) / 1000);
+      var m = Math.floor(total / 60);
+      var s = total % 60;
+      timerEl.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+    }, 1000);
+  </script>
+</body>
+</html>

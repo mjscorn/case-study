@@ -37,16 +37,14 @@
   }
 
   .app {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    grid-template-rows: 100vh;
+    display: flex;
     height: 100vh;
     overflow: hidden;
     background: var(--nav-bg);
   }
   /* Canvas + AI panel share a flex row, so the panel's animated width is what
      squeezes the canvas card — one continuous motion, both directions. */
-  .workarea { display: flex; min-width: 0; overflow: hidden; }
+  .workarea { display: flex; flex: 1; min-width: 0; overflow: hidden; }
 
   /* ---------- ADYEN INTELLIGENCE PANEL ---------- */
   .ai-panel {
@@ -121,11 +119,11 @@
     border-right: 1px solid #eef1f6;
     transition: flex-basis var(--panel-dur) var(--panel-ease);
   }
-  /* Entering full screen: the panel expands first, then the rail pushes in
-     from the left once it has settled. */
+  /* Entering full screen: the rail expands in sync with the panel so the
+     reading column glides straight to its final resting spot in one motion,
+     instead of settling first and then getting shoved sideways by a late rail. */
   .app.ai-open.ai-full .ai-side {
     flex-basis: 248px;
-    transition-delay: var(--panel-dur);
   }
   /* Leaving full screen: the rail stays put and the shrinking panel covers it
      — it collapses instantly and fades, rather than being squeezed. */
@@ -310,18 +308,21 @@
     line-height: 1.5;
   }
   /* ---------- PRE-SEEDED CASE: signal -> evidence -> root cause -> action ---------- */
-  .ai-case { display: none; flex-direction: column; gap: 18px; }
+  .ai-case { display: none; flex-direction: column; gap: 0; }
   .ai-body.casing .ai-case { display: flex; }
+  .ai-body.casing .ai-thinking { display: flex; }
   .ai-body.casing .ai-intro { display: none; }
   .ai-body.casing { justify-content: flex-start; }
 
-  .ai-step { animation: caseIn .42s cubic-bezier(.8, 0, .16, 1) both; }
-  .ai-step:nth-child(1) { animation-delay: .05s; }
-  .ai-step:nth-child(2) { animation-delay: .35s; }
-  .ai-step:nth-child(3) { animation-delay: .65s; }
-  .ai-step:nth-child(4) { animation-delay: .95s; }
+  .ai-step {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .45s cubic-bezier(.4, 0, .2, 1), opacity .3s ease .1s, margin .45s cubic-bezier(.4, 0, .2, 1);
+    margin-top: 0;
+  }
+  .ai-step.step-in { max-height: 300px; opacity: 1; margin-top: 18px; }
+  .ai-step.step-in:first-child { margin-top: 0; }
   @keyframes caseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) { .ai-step { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .ai-step.step-in { animation: none; } }
 
   .ai-step-label {
     display: flex; align-items: center; gap: 8px;
@@ -396,8 +397,8 @@
     transition: background .12s ease, border-color .12s ease;
   }
   .ai-action:hover { background: #f1f4f9; border-color: #b7c0d0; }
-  .ai-action.primary { background: #2B3135; color: #fff; border-color: #2B3135; font-weight: 600; }
-  .ai-action.primary:hover { background: #2B3135; }
+  .ai-action.primary { background: #4a5568; color: #fff; border-color: #4a5568; font-weight: 600; }
+  .ai-action.primary:hover { background: #3a4455; border-color: #3a4455; }
   .ai-action svg { width: 16px; height: 16px; flex-shrink: 0; }
   /* keyboard shortcut hint, in place of a leading icon */
   .ai-key {
@@ -415,6 +416,204 @@
     border-color: rgba(255, 255, 255, .32);
     background: rgba(255, 255, 255, .14);
     color: #fff;
+  }
+  .ai-action-other {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: default;
+  }
+  .ai-action-other-label { font-weight: 600; color: #2B3135; font-size: 13.5px; }
+  .ai-action-other-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #cdd4e0;
+    padding: 4px 0 6px;
+    font: inherit; font-size: 13.5px; color: #2B3135;
+    background: none;
+    outline: none;
+    transition: border-color .15s ease;
+  }
+  .ai-action-other-input::placeholder { color: #9ca3af; }
+  .ai-action-other-input:focus { border-color: #3b6bdb; }
+
+  /* ---------- AI CASE HOVER TOOLBAR (copy / pin / read aloud + timestamp) ---------- */
+  .ai-case-toolbar {
+    display: flex; align-items: center; gap: 4px;
+    margin-top: 12px;
+    opacity: 0; transition: opacity .15s ease;
+  }
+  .ai-case:hover .ai-case-toolbar { opacity: 1; }
+  .ai-tb-icon {
+    display: flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    border: none; border-radius: 6px; background: none;
+    color: #9ca3af; cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .ai-tb-icon svg { width: 14px; height: 14px; }
+  .ai-tb-icon:hover { background: #f1f4f9; color: #5f6b7a; }
+  .ai-tb-icon.tip::after { font-size: 10px; padding: 5px 9px; border-radius: 6px; }
+
+  /* ---------- AI CASE FOLLOW-UP RESPONSE ---------- */
+  .ai-followup { display: none; flex-direction: column; gap: 16px; margin-top: 18px; }
+  .ai-body.casing .ai-followup.visible { display: flex; animation: caseIn .42s cubic-bezier(.8, 0, .16, 1) both; }
+  .ai-followup-msg {
+    align-self: stretch; display: flex;
+    color: #2B3135; font-size: 13.5px; line-height: 1.5;
+  }
+
+  /* what the user typed into "Other", echoed as their own message */
+  .ai-case-ask { display: none; }
+  .ai-case-ask.visible {
+    display: flex; justify-content: flex-end;
+    margin-top: 18px;
+    animation: caseIn .42s cubic-bezier(.8, 0, .16, 1) both;
+  }
+  .ai-case-ask span {
+    max-width: 85%;
+    background: #eef2fb; color: #2B3135;
+    padding: 10px 14px;
+    border-radius: 16px 16px 4px 16px;
+    font-size: 13.5px; line-height: 1.45;
+  }
+
+  /* status line swaps text with a quick cross-fade */
+  #ai-followup-status { transition: opacity .25s ease; }
+  #ai-followup-status.swapping { opacity: 0; }
+
+  /* cards roll open, pushing the thinking spinner down smoothly */
+  .ai-followup-cards {
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .6s cubic-bezier(.4, 0, .2, 1), opacity .35s ease .15s, margin-top .6s cubic-bezier(.4, 0, .2, 1);
+    margin-top: 0;
+  }
+  .ai-followup-cards.cards-in { max-height: 640px; opacity: 1; margin-top: 16px; }
+  .ai-followup-text { flex: 1; }
+  .ai-followup-text p { margin: 0 0 10px; }
+  .ai-followup-text p:last-child { margin-bottom: 0; }
+
+  .ai-info-card {
+    border: 1px solid #e2e6ee; border-radius: 10px;
+    background: #fff; overflow: hidden;
+    margin-top: 6px;
+  }
+  .ai-info-card + .ai-info-card { margin-top: 10px; }
+  .ai-info-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 14px;
+    background: #f7f9fc; border-bottom: 1px solid #e2e6ee;
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #727E85;
+  }
+  .ai-info-head svg { width: 15px; height: 15px; color: #1f5fe0; }
+  .ai-info-body { padding: 12px 14px; }
+  .ai-info-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 5px 0; font-size: 13px;
+  }
+  .ai-info-row span:first-child { color: #727E85; }
+  .ai-info-row span:last-child { color: #2B3135; font-weight: 500; }
+  .ai-info-row a { color: #1f5fe0; text-decoration: none; }
+  .ai-info-row a:hover { text-decoration: underline; }
+  .ai-retry-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px; border-top: 1px solid #e2e6ee;
+  }
+  .ai-retry-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border: 1px solid #cdd4e0; border-radius: 8px;
+    background: #fff; font: inherit; font-size: 12.5px; font-weight: 600;
+    color: #2B3135; cursor: pointer; white-space: nowrap;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .ai-retry-btn:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .ai-retry-btn svg { width: 14px; height: 14px; color: #0abf53; }
+  .ai-retry-field {
+    flex: 1; border: none; border-bottom: 1px solid #cdd4e0;
+    padding: 6px 0; font: inherit; font-size: 12.5px; color: #2B3135;
+    background: none; outline: none; transition: border-color .15s ease;
+  }
+  .ai-retry-field::placeholder { color: #9ca3af; }
+  .ai-retry-field:focus { border-color: #3b6bdb; }
+  .ai-status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11.5px; font-weight: 600;
+  }
+  .ai-status-badge.paused { background: #fff3e0; color: #e65100; }
+  .ai-status-badge.paused::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%; background: #e65100;
+  }
+  .ai-tb-time {
+    font-size: 11.5px; color: #b0b8c9;
+    margin-left: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- AI THINKING SPINNER ---------- */
+  .ai-thinking {
+    display: none; align-items: center; gap: 10px;
+    margin-top: 12px;
+    padding: 0;
+    align-self: flex-start;
+    transition: gap .4s ease, padding .4s ease;
+  }
+  .ai-thinking-spinner { width: 20px; height: 20px; flex-shrink: 0; }
+  .ai-thinking-spinner svg { width: 100%; height: 100%; overflow: visible; }
+  .ai-thinking .petal { transform-box: view-box; transform-origin: 70px 24.5px; }
+  .ai-thinking .p-tr { animation: aiSpinAnchor 3.15s linear 2 forwards; }
+  .ai-thinking .p-tl { animation: aiSpinTL    3.15s linear 2 forwards; }
+  .ai-thinking .p-bl { animation: aiSpinBL    3.15s linear 2 forwards; }
+  .ai-thinking .p-br { animation: aiSpinBR    3.15s linear 2 forwards; }
+  .ai-thinking-text {
+    font-size: 13px; color: #727E85;
+    display: flex; align-items: center; gap: 6px;
+    transition: opacity .5s ease, gap .5s ease;
+  }
+  .ai-thinking-timer { font-variant-numeric: tabular-nums; min-width: 20px; }
+  .ai-thinking-dot { color: #bcc3cd; }
+  .ai-thinking-label { color: #9ca3af; }
+  .ai-thinking.done .ai-thinking-text { opacity: 0; pointer-events: none; }
+  .ai-thinking.done { transition: gap .5s ease .3s, padding .5s ease .3s; gap: 0; padding: 6px 0 2px; }
+
+  @keyframes aiSpinAnchor {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    38%   { transform: rotate(358deg); }
+    42%   { transform: rotate(360deg); }
+    52%   { transform: rotate(360deg); }
+    57%   { transform: rotate(352deg); }
+    62%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+  @keyframes aiSpinBR {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    42%   { transform: rotate(270deg) translate(4.4px, 9.1px) scale(.55); }
+    52%   { transform: rotate(270deg) translate(4.4px, 9.1px) scale(.55); }
+    67%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+  @keyframes aiSpinBL {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    48%   { transform: rotate(180deg) translate(-7.4px, 6.1px) scale(.55); }
+    52%   { transform: rotate(180deg) translate(-7.4px, 6.1px) scale(.55); }
+    71%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
+  }
+  @keyframes aiSpinTL {
+    0%    { transform: rotate(0deg); }
+    25%   { transform: rotate(340deg); }
+    30%   { transform: rotate(372deg); }
+    50%   { transform: rotate(90deg) translate(-4.4px, -9.1px) scale(.55); }
+    52%   { transform: rotate(90deg) translate(-4.4px, -9.1px) scale(.55); }
+    75%   { transform: rotate(360deg); }
+    100%  { transform: rotate(360deg); }
   }
 
   .ai-msg-bot .ai-msg-mark { flex-shrink: 0; padding-top: 2px; }
@@ -446,14 +645,10 @@
   }
   .ai-input {
     display: flex; align-items: center; gap: 4px;
-    border-radius: 6px;
-    padding: 5px 6px;
-    border: 2px solid transparent;
-    /* Adyen palette: nav navy -> accent blue -> green */
-    background-image: linear-gradient(#fff, #fff),
-                      linear-gradient(95deg, #0a1938, #1f5fe0 45%, #9dc3f5 70%, #00d16a);
-    background-origin: border-box;
-    background-clip: padding-box, border-box;
+    border-radius: 12px;
+    padding: 6px 7px;
+    border: 1px solid #E2E9ED;
+    background: #fff;
   }
   .ai-input input {
     flex: 1; border: 0; outline: 0; background: none;
@@ -478,6 +673,7 @@
     color: var(--nav-text);
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
     height: 100vh;
     overflow: hidden;
     width: var(--sidebar-w);
@@ -560,6 +756,8 @@
     padding: 18px 16px;
     text-align: center;
     color: var(--nav-text-dim);
+    overflow: hidden;
+    white-space: nowrap;
   }
   .fav-card .fav-title {
     display: flex; align-items: center; justify-content: center;
@@ -618,11 +816,12 @@
     position: absolute; inset: 0;
     width: 20px; height: 20px;
     opacity: 0;
+    transform: rotate(-90deg);   /* collapsed: chevron points right */
     transition: opacity .12s ease, transform .2s ease;
   }
   .nav-group > .l0:hover .icon { opacity: 0; }
   .nav-group > .l0:hover .glyph-chev { opacity: 1; }
-  .nav-group.open > .l0 .glyph-chev { transform: rotate(180deg); }
+  .nav-group.open > .l0 .glyph-chev { transform: rotate(0deg); }  /* expanded: turns downward */
 
   /* L1 children */
   .l1-list { list-style: none; margin: 2px 0 2px; padding: 0; display: none; }
@@ -919,6 +1118,73 @@
   }
   .topbar .tb-icon:hover { color: #2B3135; background: #f1f4f9; }
   .topbar .tb-icon svg { width: 22px; height: 22px; }
+  .tb-bell { position: relative; }
+  .tb-bell.bell-open { background: #e8ecf2; color: #2B3135; }
+  .tb-bell.bell-open::after, .tb-bell.bell-open::before { opacity: 0 !important; pointer-events: none; }
+  .bell-dot {
+    position: absolute; top: 5px; right: 5px;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #d1344a;
+    opacity: 0;
+    transition: opacity .3s ease;
+  }
+  .app.bell-active .bell-dot { opacity: 1; }
+
+  /* ---------- BELL DROPDOWN ---------- */
+  .bell-drop {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 360px;
+    background: #fff;
+    border: 1px solid #E2E9ED;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 17, 44, .14);
+    z-index: 90;
+    padding: 4px 0;
+    display: none;
+  }
+  .bell-drop.open { display: block; }
+  .bell-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background .12s ease;
+  }
+  .bell-item:hover { background: #f7f9fc; }
+  .bell-item + .bell-item { border-top: 1px solid #eef1f6; }
+  .bell-item-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: 1px solid #e2e6ee; color: #4a5878;
+  }
+  .bell-item-icon svg { width: 16px; height: 16px; }
+  .bell-item-body { flex: 1; min-width: 0; }
+  .bell-item-title { font-size: 13.5px; font-weight: 600; color: #2B3135; line-height: 1.35; }
+  .bell-item-sub { font-size: 12.5px; color: #727E85; margin-top: 3px; line-height: 1.4; }
+  .bell-item-actions {
+    display: flex; gap: 8px; margin-top: 10px;
+    max-height: 0; overflow: hidden; opacity: 0;
+    transition: max-height .2s ease, opacity .15s ease, margin-top .2s ease;
+    margin-top: 0;
+  }
+  .bell-item:hover .bell-item-actions {
+    max-height: 40px; opacity: 1; margin-top: 10px;
+  }
+  .bell-btn {
+    padding: 5px 12px; font: inherit; font-size: 12.5px; font-weight: 600;
+    border-radius: 6px; cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .bell-btn.secondary {
+    border: 1px solid #cdd4e0; background: #fff; color: #2B3135;
+  }
+  .bell-btn.secondary:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .bell-btn.tertiary {
+    border: 1px solid transparent; background: none; color: #727E85;
+  }
+  .bell-btn.tertiary:hover { background: #f1f4f9; color: #2B3135; }
   .topbar .tb-left .tb-icon svg { width: 20px; height: 20px; }
   .topbar .avatar {
     width: 28px; height: 28px;
@@ -1077,47 +1343,94 @@
   }
   .btn-seeall:hover { text-decoration: underline; }
 
-  /* timestamp · category sit to the right of the widget title */
+  /* ---------- NOTIFICATION BANNER ---------- */
+  .notice-banner {
+    border: 1px solid #E2E9ED;
+    border-radius: 12px;
+    padding: 16px 22px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  .notice-head {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .notice-overflow {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; border-radius: 6px;
+    color: #727E85; cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .notice-overflow:hover { background: #f1f4f9; color: #2B3135; }
+  .notice-overflow svg { width: 18px; height: 18px; }
+  .notice-head-right {
+    display: flex; align-items: center; gap: 12px;
+  }
   .notice-meta {
     font-size: 12px; font-weight: 500; color: #727E85;
     margin-left: 4px;
   }
   .notice-badge {
     display: inline-block;
-    align-self: flex-start;          /* card is a flex column — don't stretch */
-    margin-top: 40px;
-    padding: 4px 9px;
+    padding: 3px 8px;
     border-radius: 5px;
-    background: #FCEBEC;              /* soft red */
-    color: #2B3135;                   /* primary text */
-    font-size: 12px; font-weight: 600;
+    background: #FCEBEC;
+    color: #2B3135;
+    font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+    vertical-align: middle;
+    margin-left: 6px;
   }
-  .notice-title { font-size: 22px; font-weight: 400; color: #2B3135; line-height: 1.32; margin-top: 12px; }
-  .notice-sub { font-size: 13px; color: #727E85; margin-top: 10px; line-height: 1.5; }
-  .notice-sub strong { color: #2B3135; }
+  .notice-row {
+    display: flex; align-items: flex-end; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .notice-sub { flex: 1; min-width: 200px; font-size: 15px; font-weight: 400; color: #2B3135; line-height: 1.45; margin-bottom: 0; }
 
   .notice-actions {
-    display: flex; align-items: center; justify-content: flex-end;
-    gap: 8px; flex-wrap: wrap; margin-top: auto;
+    display: flex; align-items: center;
+    gap: 8px; flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  /* Banner entrance: slides down from under the welcome title after widgets land */
+  @keyframes bannerSlideIn {
+    from { max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; opacity: 0; border-color: transparent; }
+    to   { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #E2E9ED; }
+  }
+  .notice-banner {
+    max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0;
+    opacity: 0; border-color: transparent;
+  }
+  .home.play .notice-banner {
+    animation: bannerSlideIn .5s var(--panel-ease) .5s forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .notice-banner { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #E2E9ED; }
+    .home.play .notice-banner { animation: none; }
   }
   /* sized to match the Amount / Count segmented buttons */
   .btn-sm {
-    display: inline-flex; align-items: center; gap: 7px;
-    border: 1px solid #cdd4e0; background: #fff;
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid #cdd4e0; background: none;
     border-radius: 6px;
-    padding: 5px 16px;
-    font: inherit; font-size: 13px; font-weight: 600; color: #2B3135;
+    padding: 8px 12px;
+    font: inherit; font-size: 14px; font-weight: 500; color: #2B3135;
     cursor: pointer;
     transition: background .12s ease, border-color .12s ease;
   }
   .btn-sm:hover { background: #f1f4f9; border-color: #b7c0d0; }
-  /* primary: no fill, Adyen blue stroke */
   .btn-sm.primary {
     background: none;
-    color: #1f5fe0;
-    border-color: #1f5fe0;
+    color: #2B3135;
+    border-color: #cdd4e0;
   }
-  .btn-sm.primary:hover { background: #f2f6fe; border-color: #1a51c2; color: #1a51c2; }
+  .btn-sm.primary:hover { background: #f1f4f9; border-color: #b7c0d0; }
   /* tertiary: text only, no border */
   .btn-sm.tertiary { background: none; border-color: transparent; color: #727E85; }
   .btn-sm.tertiary:hover { background: #f1f4f9; border-color: transparent; color: #2B3135; }
@@ -1222,7 +1535,7 @@
     box-shadow: 0 1px 2px rgba(0, 17, 44, .12);
   }
 
-  .chart { width: 100%; height: auto; display: block; margin-top: 16px; }
+  .chart { width: 100%; height: 180px; display: block; margin-top: 16px; }
 
   /* Chart entrance: lines draw on, bars grow from their baseline.
      Resting/armed state = hidden; adding .play on .home animates to default. */
@@ -1254,6 +1567,11 @@
 
   @media (max-width: 1100px) {
     .home-grid { grid-template-columns: 1fr; }
+    .notice-actions {
+      flex-direction: column-reverse;
+      width: 100%;
+    }
+    .notice-actions .btn-sm { width: 100%; justify-content: center; }
   }
   @media (max-width: 860px) {
     .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1261,9 +1579,158 @@
   @media (max-width: 560px) {
     .settings-grid { grid-template-columns: 1fr; }
   }
+
+  /* ---------- SIGN-IN SCREEN ---------- */
+  .sign-in-screen {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--nav-bg);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity .4s ease;
+  }
+  .sign-in-screen.hidden { opacity: 0; pointer-events: none; }
+  .sign-in-box {
+    width: 340px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 0;
+  }
+  .sign-in-mark {
+    width: 84px; height: 84px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+  .sign-in-mark adyen-ai-mark {
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform .6s var(--panel-ease), opacity 0s;
+  }
+  .sign-in-screen.mark-in .sign-in-mark adyen-ai-mark {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .sign-in-field, .sign-in-btn, .sign-in-forgot, .sign-in-link {
+    opacity: 0;
+    transition: opacity .3s ease, border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .sign-in-screen.fields-in .sign-in-field,
+  .sign-in-screen.fields-in .sign-in-btn,
+  .sign-in-screen.fields-in .sign-in-forgot,
+  .sign-in-screen.fields-in .sign-in-link {
+    opacity: 1;
+  }
+
+  .sign-in-field {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #1d2b4d;
+    background: #0e2148;
+    border-radius: 8px;
+    font: inherit; font-size: 14px;
+    color: #e8ecf5;
+    outline: none;
+  }
+  .sign-in-field::placeholder { color: #5a6e96; }
+  .sign-in-field:focus { border-color: #3b6bdb; }
+  .sign-in-field + .sign-in-field { margin-top: 12px; }
+  .sign-in-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--green);
+    color: #fff;
+    font: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .sign-in-btn:hover { background: #09a847; }
+  .sign-in-forgot {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid #1d2b4d;
+    border-radius: 8px;
+    background: none;
+    color: #8b98b8;
+    font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .sign-in-forgot:hover { border-color: #3b6bdb; color: #c8d0e8; }
+  .sign-in-link {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: none;
+    color: #8b98b8;
+    font: inherit; font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+  }
+  .sign-in-link:hover { background: rgba(255, 255, 255, .06); color: #c8d0e8; }
+
+  /* ---------- APP ENTRANCE ANIMATION ---------- */
+  .app { opacity: 0; pointer-events: none; }
+  .app.entered { opacity: 1; pointer-events: auto; }
+  .app .sidebar {
+    transform: translateX(-100%);
+    transition: transform .6s var(--panel-ease), width var(--nav-dur) var(--panel-ease);
+  }
+  .app.entered .sidebar { transform: translateX(0); }
+  .app .workarea {
+    opacity: 0;
+    transform: translateX(100%);
+    transition: opacity .5s ease .15s, transform .7s var(--panel-ease) .1s;
+  }
+  .app.entered .workarea { opacity: 1; transform: translateX(0); }
+  /* Nav items stagger in row by row */
+  .sidebar .org,
+  .sidebar .nav-group,
+  .sidebar .nav-scroll > .nav-item.l0,
+  .sidebar .nav-scroll > .nav-group > .nav-item.l0,
+  .sidebar .settings-item,
+  .sidebar .lang {
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: opacity .35s ease, transform .4s var(--panel-ease);
+  }
+  .app.nav-stagger .sidebar .org,
+  .app.nav-stagger .sidebar .nav-group,
+  .app.nav-stagger .sidebar .nav-scroll > .nav-item.l0,
+  .app.nav-stagger .sidebar .nav-scroll > .nav-group > .nav-item.l0,
+  .app.nav-stagger .sidebar .settings-item,
+  .app.nav-stagger .sidebar .lang {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .app.entrance-done .sidebar .org,
+  .app.entrance-done .sidebar .nav-group,
+  .app.entrance-done .sidebar .nav-scroll > .nav-item.l0,
+  .app.entrance-done .sidebar .nav-scroll > .nav-group > .nav-item.l0,
+  .app.entrance-done .sidebar .settings-item,
+  .app.entrance-done .sidebar .lang {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 </style>
 </head>
 <body>
+  <div class="sign-in-screen" id="sign-in-screen">
+    <div class="sign-in-box">
+      <div class="sign-in-mark">
+        <adyen-ai-mark size="84px" duration="1s" color="#0abf53"></adyen-ai-mark>
+      </div>
+      <input class="sign-in-field" type="text" placeholder="Username" autocomplete="off" value="radco@email.com" />
+      <input class="sign-in-field" type="password" placeholder="Password" autocomplete="off" value="••••••••••" />
+      <button class="sign-in-btn" id="sign-in-btn" type="button">Sign in</button>
+      <button class="sign-in-forgot" type="button">Create new account</button>
+      <button class="sign-in-link" type="button">Forgot password</button>
+    </div>
+  </div>
   <div class="app">
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
@@ -1303,7 +1770,7 @@
                 <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
                 No favorites yet
               </div>
-              <p>Click on the star on the right side of a menu item to add as a favorite.</p>
+              <p>Click stars on menu items to add them.</p>
             </div>
           </div>
 
@@ -1436,8 +1903,44 @@
           <span class="tb-icon tip" data-tip="Feedback">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 01-1-1v-7a1 1 0 011-1h3zm0 0l4-8a2.5 2.5 0 012.5 2.5V8h5a2 2 0 012 2.3l-1.2 7A2 2 0 0117.3 19H7"/></svg>
           </span>
-          <span class="tb-icon tip" data-tip="Notifications">
+          <span class="tb-icon tip tb-bell" data-tip="Notifications" id="bell-toggle">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+            <i class="bell-dot" aria-hidden="true"></i>
+            <div class="bell-drop" id="bell-drop">
+              <div class="bell-item">
+                <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#d1344a" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#fff"/></svg></div>
+                <div class="bell-item-body">
+                  <div class="bell-item-title">Subscription failed due to expired card</div>
+                  <div class="bell-item-sub">Northwind Retail's $48,000.00 renewal failed</div>
+                  <div class="bell-item-actions">
+                    <button class="bell-btn secondary" type="button">Action</button>
+                    <button class="bell-btn tertiary" type="button">Action</button>
+                  </div>
+                </div>
+              </div>
+              <div class="bell-item">
+                <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#FFECD9" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#c47a20"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#c47a20"/></svg></div>
+                <div class="bell-item-body">
+                  <div class="bell-item-title">Unusual chargeback spike detected</div>
+                  <div class="bell-item-sub">14 chargebacks in the last 24 hours</div>
+                  <div class="bell-item-actions">
+                    <button class="bell-btn secondary" type="button">Action</button>
+                    <button class="bell-btn tertiary" type="button">Action</button>
+                  </div>
+                </div>
+              </div>
+              <div class="bell-item">
+                <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#FFECD9" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#c47a20"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#c47a20"/></svg></div>
+                <div class="bell-item-body">
+                  <div class="bell-item-title">API latency above threshold</div>
+                  <div class="bell-item-sub">Average response time exceeded 500ms</div>
+                  <div class="bell-item-actions">
+                    <button class="bell-btn secondary" type="button">Action</button>
+                    <button class="bell-btn tertiary" type="button">Action</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </span>
           <span class="tb-icon tip" data-tip="Help">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 .5c0 1.7-2.5 2-2.5 3.5"/><line x1="12" y1="17" x2="12" y2="17"/></svg>
@@ -1461,6 +1964,23 @@
             </button>
           </div>
 
+          <div class="notice-banner">
+            <div class="notice-head">
+              <div class="card-title">Notifications <span class="notice-badge">Critical</span></div>
+              <button class="notice-overflow" id="notice-seeall" type="button" title="More notifications"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+            </div>
+            <div class="notice-row">
+              <div class="notice-sub">Northwind Retail's $48,000.00 renewal failed due to an expired card. An automatic update request was sent 10 hours ago.</div>
+              <div class="notice-actions">
+                <button class="btn-sm tertiary" type="button">View transaction</button>
+                <button class="btn-sm primary" id="notice-resolve" type="button">
+                  <svg class="ico-petals" viewBox="16 16 60 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.45"/><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.65"/><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.85"/></svg>
+                  Help me resolve
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="home-grid">
             <!-- Authorization rate -->
             <div class="card">
@@ -1482,29 +2002,6 @@
                 <polyline pathLength="1" fill="none" stroke="#9dc3f5" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="44,80.8 150,16 256,59.2 362,59.2 468,109.6 574,59.2 680,80.8"/>
                 <polyline pathLength="1" fill="none" stroke="#1f5fe0" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" points="44,30.4 150,224.8 256,95.2 362,88 468,116.8 574,44.8 680,88"/>
               </svg>
-            </div>
-
-            <!-- Notifications: one at a time, ranked by value at risk -->
-            <div class="card">
-              <div class="card-head">
-                <div class="card-title">
-                  Notifications
-                  <span class="notice-meta">2 hours ago</span>
-                </div>
-                <button class="btn-seeall" id="notice-seeall" type="button">See all (3)</button>
-              </div>
-
-              <span class="notice-badge">Critical</span>
-              <div class="notice-title">Subscription failed due to expired card</div>
-              <div class="notice-sub">Northwind Retail's $48,000.00 renewal failed due to an expired card. An automatic request to update was sent 10 hours ago. Want help resolving this sooner?</div>
-
-              <div class="notice-actions">
-                <button class="btn-sm tertiary" type="button">View transactions</button>
-                <button class="btn-sm primary" id="notice-resolve" type="button">
-                  <svg class="ico-petals" viewBox="16 16 60 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#00D16A" opacity="0.45"/><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#00D16A"/><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#00D16A" opacity="0.65"/><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#00D16A" opacity="0.85"/></svg>
-                  Resolve for me
-                </button>
-              </div>
             </div>
 
             <!-- Failed transactions -->
@@ -1546,10 +2043,10 @@
                   <text x="44" y="258" text-anchor="middle">Fri</text><text x="150" y="258" text-anchor="middle">Sat</text><text x="256" y="258" text-anchor="middle">Sun</text><text x="362" y="258" text-anchor="middle">Mon</text><text x="468" y="258" text-anchor="middle">Tue</text><text x="574" y="258" text-anchor="middle">Wed</text><text x="680" y="258" text-anchor="middle">Thu</text>
                 </g>
                 <g fill="#9dc3f5" class="bar-v">
-                  <rect x="24" y="64.6" width="18" height="167.4" rx="3"/><rect x="130" y="102.4" width="18" height="129.6" rx="3"/><rect x="236" y="83.5" width="18" height="148.5" rx="3"/><rect x="342" y="43" width="18" height="189" rx="3"/><rect x="448" y="124" width="18" height="108" rx="3"/><rect x="554" y="75.4" width="18" height="156.6" rx="3"/><rect x="660" y="53.8" width="18" height="178.2" rx="3"/>
+                  <rect x="55" y="64.6" width="18" height="167.4" rx="3"/><rect x="141" y="102.4" width="18" height="129.6" rx="3"/><rect x="247" y="83.5" width="18" height="148.5" rx="3"/><rect x="353" y="43" width="18" height="189" rx="3"/><rect x="459" y="124" width="18" height="108" rx="3"/><rect x="565" y="75.4" width="18" height="156.6" rx="3"/><rect x="651" y="53.8" width="18" height="178.2" rx="3"/>
                 </g>
                 <g fill="#1f5fe0" class="bar-v">
-                  <rect x="46" y="97" width="18" height="135" rx="3"/><rect x="152" y="37.6" width="18" height="194.4" rx="3"/><rect x="258" y="110.5" width="18" height="121.5" rx="3"/><rect x="364" y="70" width="18" height="162" rx="3"/><rect x="470" y="91.6" width="18" height="140.4" rx="3"/><rect x="576" y="59.2" width="18" height="172.8" rx="3"/><rect x="682" y="75.4" width="18" height="156.6" rx="3"/>
+                  <rect x="77" y="97" width="18" height="135" rx="3"/><rect x="163" y="37.6" width="18" height="194.4" rx="3"/><rect x="269" y="110.5" width="18" height="121.5" rx="3"/><rect x="375" y="70" width="18" height="162" rx="3"/><rect x="481" y="91.6" width="18" height="140.4" rx="3"/><rect x="587" y="59.2" width="18" height="172.8" rx="3"/><rect x="673" y="75.4" width="18" height="156.6" rx="3"/>
                 </g>
               </svg>
             </div>
@@ -1842,10 +2339,10 @@
         <div class="ai-content">
         <header class="ai-head">
           <button class="ai-icon-btn ai-expand" type="button" title="Expand to full screen">
-            <!-- companion mode: arrows pointing out to all four corners -->
-            <svg class="ico-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 9.5 4 4 9.5 4"/><line x1="4" y1="4" x2="10" y2="10"/><polyline points="14.5 4 20 4 20 9.5"/><line x1="20" y1="4" x2="14" y2="10"/><polyline points="4 14.5 4 20 9.5 20"/><line x1="4" y1="20" x2="10" y2="14"/><polyline points="14.5 20 20 20 20 14.5"/><line x1="20" y1="20" x2="14" y2="14"/></svg>
-            <!-- full screen: arrows pointing in from all four corners -->
-            <svg class="ico-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9.5 4 9.5 9.5 4 9.5"/><line x1="3.5" y1="3.5" x2="9.5" y2="9.5"/><polyline points="14.5 4 14.5 9.5 20 9.5"/><line x1="20.5" y1="3.5" x2="14.5" y2="9.5"/><polyline points="4 14.5 9.5 14.5 9.5 20"/><line x1="3.5" y1="20.5" x2="9.5" y2="14.5"/><polyline points="20 14.5 14.5 14.5 14.5 20"/><line x1="20.5" y1="20.5" x2="14.5" y2="14.5"/></svg>
+            <!-- companion mode: expand (two diagonal arrows to opposite corners) -->
+            <svg class="ico-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="14 4 20 4 20 10"/><polyline points="10 20 4 20 4 14"/><line x1="20" y1="4" x2="13.5" y2="10.5"/><line x1="4" y1="20" x2="10.5" y2="13.5"/></svg>
+            <!-- full screen: minimize (two diagonal arrows toward the centre) -->
+            <svg class="ico-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="20" y2="4"/><line x1="10" y1="14" x2="4" y2="20"/></svg>
           </button>
           <span class="ai-title">Adyen Intelligence</span>
           <div class="ai-head-actions">
@@ -1922,8 +2419,8 @@
           <div class="ai-case">
             <div class="ai-step">
               <div class="ai-step-label">What happened</div>
-              <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal was refused — their card has expired.</div>
-              <div class="ai-step-body">This is their only failed payment; everything else on the account is current. They've been a customer for 4 years and have never missed a renewal.</div>
+              <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal failed because their card expired.</div>
+              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before.</div>
             </div>
 
             <div class="ai-step">
@@ -1936,15 +2433,15 @@
                 <div class="ai-ev-kv"><span>Attempted</span><span class="v">Yesterday, 02:14 CET</span></div>
                 <div class="ai-ev-kv"><span>Next retry</span><span class="v">In 2 days · will fail again</span></div>
               </div>
-              <div class="ai-step-body">An automatic notice has already gone to their billing contact. Nothing else is needed from them until the card is updated.</div>
+              <div class="ai-step-body">An automatic email was sent to their billing contact 10 hours ago.</div>
             </div>
 
-            <div class="ai-step">
-              <div class="ai-step-label">What should we do?</div>
+            <div class="ai-step" id="ai-step-options">
+              <div class="ai-step-label">Options to fix this:</div>
               <div class="ai-actions">
                 <button class="ai-action primary" type="button">
                   <kbd class="ai-key">⌘1</kbd>
-                  Pull up their info
+                  Pull up their contact info
                 </button>
                 <button class="ai-action" type="button">
                   <kbd class="ai-key">⌘2</kbd>
@@ -1954,7 +2451,85 @@
                   <kbd class="ai-key">⌘3</kbd>
                   Pause the retry until they update
                 </button>
+                <div class="ai-action ai-action-other">
+                  <div class="ai-action-other-label">Other</div>
+                  <input class="ai-action-other-input" type="text" placeholder="Tell me what to do" />
+                </div>
               </div>
+            </div>
+
+            <div class="ai-case-toolbar">
+              <button class="ai-tb-icon tip" type="button" data-tip="Copy">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+              </button>
+              <button class="ai-tb-icon tip" type="button" data-tip="Pin">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v6l-2 4v2h10v-2l-2-4V4"/><line x1="12" y1="16" x2="12" y2="22"/><line x1="8" y1="4" x2="16" y2="4"/></svg>
+              </button>
+              <button class="ai-tb-icon tip" type="button" data-tip="Read aloud">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>
+              </button>
+              <span class="ai-tb-time">2m ago</span>
+            </div>
+
+            <div class="ai-case-ask" id="ai-case-ask"></div>
+
+            <div class="ai-followup" id="ai-followup">
+              <div class="ai-followup-msg">
+                <div class="ai-followup-text">
+                  <p id="ai-followup-status">Okay, sounds good. Let me pull up the info and stop that payment.</p>
+
+                  <div class="ai-followup-cards" id="ai-followup-cards">
+                  <div class="ai-info-card">
+                    <div class="ai-info-head">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      Billing contact
+                    </div>
+                    <div class="ai-info-body">
+                      <div class="ai-info-row"><span>Name</span><span>Sarah Chen</span></div>
+                      <div class="ai-info-row"><span>Title</span><span>Accounts Payable Manager</span></div>
+                      <div class="ai-info-row"><span>Email</span><span><a href="#">s.chen@northwindretail.com</a></span></div>
+                      <div class="ai-info-row"><span>Phone</span><span><a href="#">+1 (415) 555-0192</a></span></div>
+                      <div class="ai-info-row"><span>Best response</span><span>Tues–Thurs, 9am–12pm PT</span></div>
+                    </div>
+                  </div>
+
+                  <div class="ai-info-card">
+                    <div class="ai-info-head">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
+                      Payment retry
+                      <span class="ai-status-badge paused">Paused</span>
+                    </div>
+                    <div class="ai-info-body">
+                      <div class="ai-info-row"><span>Status</span><span>Automatic retries paused</span></div>
+                      <div class="ai-info-row"><span>Last attempt</span><span>Yesterday, 02:14 CET</span></div>
+                    </div>
+                    <div class="ai-retry-bar">
+                      <button class="ai-retry-btn" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Resume retries
+                      </button>
+                      <input class="ai-retry-field" type="text" placeholder="Retry in 7 days" value="7 days" />
+                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-thinking" id="ai-thinking">
+            <div class="ai-thinking-spinner">
+              <svg viewBox="30 -15 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g class="petal p-tl"><path transform="translate(24 -15.5)" d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.4"/></g>
+                <g class="petal p-bl"><path transform="translate(24 -15.5)" d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.6"/></g>
+                <g class="petal p-br"><path transform="translate(24 -15.5)" d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.8"/></g>
+                <g class="petal p-tr"><path transform="translate(24 -15.5)" d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/></g>
+              </svg>
+            </div>
+            <div class="ai-thinking-text">
+              <span class="ai-thinking-timer" id="ai-thinking-timer">0s</span>
+              <span class="ai-thinking-dot">&middot;</span>
+              <span class="ai-thinking-label">Thinking...</span>
             </div>
           </div>
 
@@ -2107,34 +2682,57 @@
         aiIntroTimer = setTimeout(function () { aiAnim.play(); }, wait + RISE_MS + SETTLE_MS);
       }
 
+      // The panel drops the nav to its icon rail while it's open. We only put
+      // the nav back on close if we were the ones who collapsed it — a nav the
+      // user had already collapsed stays collapsed.
+      var autoCollapsed = false;
+      function syncCollapseTip() {
+        if (collapseBtn) {
+          collapseBtn.setAttribute('data-tip',
+            app.classList.contains('collapsed') ? 'Expand menu' : 'Collapse menu');
+        }
+      }
+      function openAiPanel() {
+        if (!app.classList.contains('collapsed')) {
+          autoCollapsed = true;
+          app.classList.add('collapsed');
+          syncCollapseTip();
+        }
+        app.classList.add('ai-open');
+      }
+      function closeAiPanel() {
+        // From full screen the panel shrinks left-to-right at its full width
+        // while the canvas grows back in behind it.
+        if (app.classList.contains('ai-full')) {
+          app.classList.add('ai-closing');
+          setTimeout(function () { app.classList.remove('ai-closing'); }, 520);
+        }
+        app.classList.remove('ai-open', 'ai-full');
+        if (aiExpand) aiExpand.setAttribute('title', 'Expand to full screen');
+        if (autoCollapsed) {
+          app.classList.remove('collapsed');
+          autoCollapsed = false;
+          syncCollapseTip();
+        }
+      }
+
       var aiTrigger = document.querySelector('.ai-trigger');
       if (aiTrigger) {
         aiTrigger.addEventListener('click', function () {
-          // wait out the panel slide before the mark pushes up
-          if (app.classList.toggle('ai-open')) playAiIntro(500);
+          if (app.classList.contains('ai-open')) {
+            closeAiPanel();
+          } else {
+            openAiPanel();
+            playAiIntro(500);   // wait out the panel slide before the mark rises
+          }
         });
       }
       // click the hero mark to replay the prop-to-icon animation
       var aiHeroMark = document.querySelector('.ai-hero-mark');
       if (aiHeroMark) aiHeroMark.addEventListener('click', playAiIntro);
       document.querySelectorAll('.ai-close').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          // From full screen the panel shrinks left-to-right at its full width
-          // while the canvas grows back in behind it.
-          if (app.classList.contains('ai-full')) {
-            app.classList.add('ai-closing');
-            setTimeout(function () { app.classList.remove('ai-closing'); }, 520);
-          }
-          app.classList.remove('ai-open', 'ai-full');
-          if (aiExpand) aiExpand.setAttribute('title', 'Expand to full screen');
-          if (autoCollapsed) {                 // undo the rail we forced open with
-            app.classList.remove('collapsed');
-            autoCollapsed = false;
-            if (collapseBtn) collapseBtn.setAttribute('data-tip', 'Collapse menu');
-          }
-        });
+        btn.addEventListener('click', closeAiPanel);
       });
-      var autoCollapsed = false;
       var aiExpand = document.querySelector('.ai-expand');
       if (aiExpand) {
         aiExpand.addEventListener('click', function () {
@@ -2146,33 +2744,167 @@
           }
           var full = app.classList.toggle('ai-full');
           aiExpand.setAttribute('title', full ? 'Exit full screen' : 'Expand to full screen');
-          // full screen also drops the sidebar to its icon-only rail; only undo
-          // that on exit if we were the ones who collapsed it
-          if (full) {
-            autoCollapsed = !app.classList.contains('collapsed');
+          // the nav is already on its rail while the panel is open; if the user
+          // re-expanded it manually, full screen collapses it again
+          if (full && !app.classList.contains('collapsed')) {
+            autoCollapsed = true;
             app.classList.add('collapsed');
-          } else if (autoCollapsed) {
-            app.classList.remove('collapsed');
-            autoCollapsed = false;
+            syncCollapseTip();
           }
-          if (collapseBtn) {
-            collapseBtn.setAttribute('data-tip',
-              app.classList.contains('collapsed') ? 'Expand menu' : 'Collapse menu');
+        });
+      }
+
+      // --- Bell dropdown toggle ---
+      var bellToggle = document.getElementById('bell-toggle');
+      var bellDrop = document.getElementById('bell-drop');
+      if (bellToggle && bellDrop) {
+        bellToggle.addEventListener('click', function (e) {
+          if (e.target.closest('.bell-drop')) return;
+          var opening = !bellDrop.classList.contains('open');
+          bellDrop.classList.toggle('open');
+          bellToggle.classList.toggle('bell-open', opening);
+        });
+        document.addEventListener('click', function (e) {
+          if (!bellToggle.contains(e.target)) {
+            bellDrop.classList.remove('open');
+            bellToggle.classList.remove('bell-open');
           }
         });
       }
 
       // --- Home notification -> AI panel with the case pre-seeded ---
+      var aiThinking = document.getElementById('ai-thinking');
+      var aiThinkingTimer = document.getElementById('ai-thinking-timer');
+      var aiThinkInterval = null;
+      var aiThinkTimeout = null;
+      var aiPinRaf = null;
+
+      // Keep the panel pinned to the bottom while content height animates, so
+      // new content pushes what's above it up in one continuous motion.
+      function pinAiBottom(ms) {
+        cancelAnimationFrame(aiPinRaf);
+        var end = Date.now() + (ms || 700);
+        (function step() {
+          aiBody.scrollTop = aiBody.scrollHeight;
+          if (Date.now() < end) aiPinRaf = requestAnimationFrame(step);
+        })();
+      }
+
+      function startAiThinking() {
+        clearInterval(aiThinkInterval);
+        clearTimeout(aiThinkTimeout);
+        aiThinking.classList.remove('done');
+        // restart petal animations (they use iteration-count: 2, not infinite)
+        aiThinking.querySelectorAll('.petal').forEach(function (p) {
+          p.style.animation = 'none';
+          void p.offsetWidth;
+          p.style.animation = '';
+        });
+        var start = Date.now();
+        aiThinkingTimer.textContent = '0s';
+        aiThinkInterval = setInterval(function () {
+          var total = Math.floor((Date.now() - start) / 1000);
+          var m = Math.floor(total / 60);
+          var s = total % 60;
+          aiThinkingTimer.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+        }, 1000);
+        // petals stop naturally after 2 cycles (~6.3s); fade text shortly after
+        aiThinkTimeout = setTimeout(function () {
+          clearInterval(aiThinkInterval);
+          aiThinking.classList.add('done');
+        }, 6500);
+      }
+
+      var aiFollowup = document.getElementById('ai-followup');
+      var aiFollowupStatus = document.getElementById('ai-followup-status');
+      var aiFollowupCards = document.getElementById('ai-followup-cards');
+      var aiOtherInput = document.querySelector('.ai-action-other-input');
+      var aiCaseAsk = document.getElementById('ai-case-ask');
+      var aiStepOptions = document.getElementById('ai-step-options');
+      var aiFollowupTimeout = null;
+      var aiStatusTimeout = null;
+
       function openAiCase() {
-        app.classList.add('ai-open');
+        openAiPanel();
         aiChat.innerHTML = '';
         aiBody.classList.remove('chatting', 'noticing');
         aiBody.classList.add('casing');
-        // replay the step cascade
-        document.querySelectorAll('.ai-case .ai-step').forEach(function (s) {
-          s.style.animation = 'none';
-          void s.offsetWidth;
-          s.style.animation = '';
+        aiFollowup.classList.remove('visible');
+        aiFollowupCards.classList.remove('cards-in');
+        aiCaseAsk.classList.remove('visible');
+        aiCaseAsk.innerHTML = '';
+        clearTimeout(aiFollowupTimeout);
+        clearTimeout(aiStatusTimeout);
+        var steps = document.querySelectorAll('.ai-case .ai-step');
+        steps.forEach(function (s) { s.classList.remove('step-in'); });
+        var delays = [100, 1100, 2100, 3100];
+        steps.forEach(function (s, i) {
+          setTimeout(function () {
+            s.classList.add('step-in');
+            pinAiBottom(600);
+          }, delays[i] || (i * 1000 + 100));
+        });
+        if (aiOtherInput) aiOtherInput.value = '';
+        startAiThinking();
+      }
+
+      // "Other" input triggers options 1+3 follow-up
+      if (aiOtherInput) {
+        aiOtherInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && aiOtherInput.value.trim()) {
+            e.preventDefault();
+            // echo what was typed as the user's own message, then retire the
+            // options list — the choice has been made.
+            var asked = aiOtherInput.value.trim();
+            aiCaseAsk.innerHTML = '<span></span>';
+            aiCaseAsk.querySelector('span').textContent = asked;
+            aiCaseAsk.classList.add('visible');
+            aiOtherInput.value = '';
+            aiOtherInput.blur();
+            aiStepOptions.classList.remove('step-in');
+            pinAiBottom(600);
+            // restart thinking animation for the follow-up (3 cycles for ~10s)
+            aiThinking.querySelectorAll('.petal').forEach(function (p) {
+              p.style.animation = 'none';
+              void p.offsetWidth;
+              p.style.animation = '';
+              p.style.animationIterationCount = '3';
+            });
+            aiThinking.classList.remove('done');
+            clearInterval(aiThinkInterval);
+            clearTimeout(aiThinkTimeout);
+            var start = Date.now();
+            aiThinkingTimer.textContent = '0s';
+            aiThinkInterval = setInterval(function () {
+              var total = Math.floor((Date.now() - start) / 1000);
+              var m = Math.floor(total / 60);
+              var s = total % 60;
+              aiThinkingTimer.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+            }, 1000);
+            // 2s: acknowledge — 9s: report back and roll the cards open
+            aiFollowupStatus.classList.remove('swapping');
+            aiFollowupStatus.textContent =
+              'Okay, sounds good. Let me pull up the info and stop that payment.';
+            aiFollowupCards.classList.remove('cards-in');
+            aiFollowupTimeout = setTimeout(function () {
+              aiFollowup.classList.add('visible');
+              pinAiBottom(500);
+            }, 2000);
+            aiStatusTimeout = setTimeout(function () {
+              aiFollowupStatus.classList.add('swapping');
+              setTimeout(function () {
+                aiFollowupStatus.textContent =
+                  'Found their info, and I was able to stop that payment.';
+                aiFollowupStatus.classList.remove('swapping');
+                aiFollowupCards.classList.add('cards-in');
+                pinAiBottom(750);
+              }, 250);
+            }, 9000);
+            aiThinkTimeout = setTimeout(function () {
+              clearInterval(aiThinkInterval);
+              aiThinking.classList.add('done');
+            }, 9500);
+          }
         });
       }
 
@@ -2183,7 +2915,7 @@
       var noticeSeeAll = document.getElementById('notice-seeall');
       if (noticeSeeAll) {
         noticeSeeAll.addEventListener('click', function () {
-          app.classList.add('ai-open');
+          openAiPanel();
           aiChat.innerHTML = '';
           aiBody.classList.remove('chatting', 'casing');
           aiBody.classList.add('noticing');
@@ -2322,8 +3054,10 @@
 
       function playHome() {
         homeView.classList.remove('play');
-        void homeView.offsetWidth;   // reflow so the armed state applies
+        app.classList.remove('bell-active');
+        void homeView.offsetWidth;
         homeView.classList.add('play');
+        setTimeout(function () { app.classList.add('bell-active'); }, 800);
       }
 
       function showView(view) {
@@ -2336,9 +3070,19 @@
 
       // --- L0 routing: only flat L0s (no L1s) navigate & activate.
       //     Group L0s just expand/collapse (handled above); they never go active. ---
+      function exitAiFull() {
+        if (app.classList.contains('ai-full')) {
+          app.classList.add('ai-leaving-full');
+          setTimeout(function () { app.classList.remove('ai-leaving-full'); }, 520);
+          app.classList.remove('ai-full');
+          if (aiExpand) aiExpand.setAttribute('title', 'Expand to full screen');
+        }
+      }
+
       document.querySelectorAll('.nav-item.l0').forEach(function (row) {
         if (row.closest('.nav-group')) return;   // group L0s only expand
         row.addEventListener('click', function () {
+          exitAiFull();
           var label = row.querySelector('.label').textContent.trim();
           currentPageTitle = null;
           setActive(row);
@@ -2351,6 +3095,7 @@
       document.querySelectorAll('.nav-item.l1').forEach(function (item) {
         if (item.closest('.lang-group')) return;   // language items handled separately
         item.addEventListener('click', function () {
+          exitAiFull();
           pageTitle.textContent = item.dataset.fav;
           currentPageTitle = item.dataset.fav;
           setActive(item);
@@ -2433,12 +3178,47 @@
         });
       });
 
-      // --- Default landing view: Homepage ---
+      // --- Default landing view: Homepage (without triggering playHome yet) ---
       var homeRow = document.querySelector('li.nav-item.l0[data-tip="Homepage"]');
-      if (homeRow) {
-        setActive(homeRow);
-        showView(homeView);
-      }
+      if (homeRow) setActive(homeRow);
+      [settingsView, pageView, homeView].forEach(function (v) {
+        v.classList.toggle('show', v === homeView);
+      });
+
+      // --- Sign-in flow ---
+      var signInScreen = document.getElementById('sign-in-screen');
+      var signInBtn = document.getElementById('sign-in-btn');
+      var signInMark = signInScreen.querySelector('adyen-ai-mark');
+
+      setTimeout(function () {
+        signInScreen.classList.add('fields-in');
+        setTimeout(function () {
+          signInScreen.classList.add('mark-in');
+          if (signInMark && signInMark.play) {
+            setTimeout(function () { signInMark.play(); }, 500);
+          }
+        }, 300);
+      }, 400);
+
+      signInBtn.addEventListener('click', function () {
+        signInScreen.classList.add('hidden');
+        app.classList.add('entered');
+
+        var navItems = document.querySelectorAll(
+          '.sidebar .org, .sidebar .nav-group, .sidebar .nav-scroll > .nav-item.l0, .sidebar .settings-item, .sidebar .lang'
+        );
+        navItems.forEach(function (el, i) {
+          el.style.transitionDelay = (i * 40) + 'ms';
+        });
+        setTimeout(function () { app.classList.add('nav-stagger'); }, 50);
+
+        setTimeout(function () {
+          signInScreen.style.display = 'none';
+          navItems.forEach(function (el) { el.style.transitionDelay = ''; });
+          app.classList.add('entrance-done');
+          playHome();
+        }, 800);
+      });
     })();
   </script>
 </body>
