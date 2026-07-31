@@ -1669,6 +1669,53 @@
   }
 
   /* ---------- SIGN-IN SCREEN ---------- */
+  /* ---------- PASSCODE GATE ----------
+     Sits above the sign-in screen and holds its entrance back until the scrim
+     has fully cleared. Client-side only — a deterrent, not real security. */
+  .gate {
+    position: fixed; inset: 0; z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(6, 15, 36, .72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: opacity .35s ease;
+  }
+  .gate.leaving { opacity: 0; pointer-events: none; }
+  .gate-card {
+    width: 300px;
+    padding: 26px 24px 22px;
+    background: #10203f;
+    border: 1px solid #24345a;
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+    text-align: center;
+    transition: transform .35s var(--panel-ease), opacity .3s ease;
+  }
+  .gate.leaving .gate-card { transform: translateY(-8px) scale(.97); opacity: 0; }
+  .gate-title { font-size: 15px; font-weight: 600; color: #e8ecf5; }
+  .gate-sub { font-size: 12.5px; color: #8b98b8; margin: 4px 0 16px; }
+  .gate-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #1d2b4d;
+    background: #0e2148;
+    border-radius: 8px;
+    font: inherit; font-size: 20px; font-weight: 600;
+    letter-spacing: 8px; text-align: center; text-indent: 8px;
+    color: #e8ecf5; outline: none;
+    transition: border-color .15s ease;
+  }
+  .gate-input:focus { border-color: #3b6bdb; }
+  .gate.bad .gate-input { border-color: #d1344a; }
+  .gate.bad .gate-card { animation: gateShake .4s ease; }
+  @keyframes gateShake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-7px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(2px); }
+  }
+
   .sign-in-screen {
     position: fixed; inset: 0; z-index: 200;
     background: var(--nav-bg);
@@ -1807,6 +1854,15 @@
 </style>
 </head>
 <body>
+  <div class="gate" id="gate">
+    <div class="gate-card">
+      <div class="gate-title">Prototype access</div>
+      <div class="gate-sub">Enter the passcode to continue</div>
+      <input class="gate-input" id="gate-input" type="password" inputmode="numeric"
+             maxlength="4" autocomplete="off" aria-label="Passcode" />
+    </div>
+  </div>
+
   <div class="sign-in-screen" id="sign-in-screen">
     <div class="sign-in-box">
       <div class="sign-in-mark">
@@ -3448,15 +3504,59 @@
       var signInBtn = document.getElementById('sign-in-btn');
       var signInMark = signInScreen.querySelector('adyen-ai-mark');
 
-      setTimeout(function () {
-        signInScreen.classList.add('fields-in');
+      function startSignInIntro() {
         setTimeout(function () {
-          signInScreen.classList.add('mark-in');
-          if (signInMark && signInMark.play) {
-            setTimeout(function () { signInMark.play(); }, 500);
-          }
-        }, 300);
-      }, 400);
+          signInScreen.classList.add('fields-in');
+          setTimeout(function () {
+            signInScreen.classList.add('mark-in');
+            if (signInMark && signInMark.play) {
+              setTimeout(function () { signInMark.play(); }, 500);
+            }
+          }, 300);
+        }, 400);
+      }
+
+      // --- Passcode gate: once per session, and the sign-in screen stays inert
+      //     until the scrim has fully cleared. ---
+      var GATE_CODE = '9000';
+      var GATE_KEY = 'adyen-proto-unlocked';
+      var gate = document.getElementById('gate');
+      var gateInput = document.getElementById('gate-input');
+
+      function gateUnlocked() {
+        try { return sessionStorage.getItem(GATE_KEY) === '1'; } catch (e) { return false; }
+      }
+
+      function tryGate() {
+        if (gateInput.value !== GATE_CODE) {
+          gate.classList.remove('bad');
+          void gate.offsetWidth;                 // restart the shake
+          gate.classList.add('bad');
+          gateInput.select();
+          return;
+        }
+        try { sessionStorage.setItem(GATE_KEY, '1'); } catch (e) {}
+        gateInput.blur();
+        gate.classList.add('leaving');
+        setTimeout(function () {
+          gate.remove();
+          startSignInIntro();                    // only now does anything move
+        }, 380);
+      }
+
+      if (!gate || gateUnlocked()) {
+        if (gate) gate.remove();
+        startSignInIntro();
+      } else {
+        setTimeout(function () { gateInput.focus(); }, 80);
+        gateInput.addEventListener('input', function () {
+          gate.classList.remove('bad');
+          if (gateInput.value.length >= GATE_CODE.length) tryGate();
+        });
+        gateInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); tryGate(); }
+        });
+      }
 
       signInBtn.addEventListener('click', function () {
         signInScreen.classList.add('hidden');
