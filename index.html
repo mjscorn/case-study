@@ -301,7 +301,6 @@
   .ai-msg-bot {
     align-self: flex-start;
     display: flex;
-    gap: 10px;
     max-width: 94%;
     color: #2B3135;
     font-size: 13.5px;
@@ -616,9 +615,6 @@
     100%  { transform: rotate(360deg); }
   }
 
-  .ai-msg-bot .ai-msg-mark { flex-shrink: 0; padding-top: 2px; }
-  .ai-msg-bot .ai-msg-mark svg { width: 18px; height: auto; }
-
   .ai-footer { flex-shrink: 0; padding: 10px 16px 14px; }
   /* only the composer rides up; the legal line underneath stays put */
   .ai-input-clip { overflow: hidden; padding: 2px; margin: -2px; }
@@ -874,6 +870,26 @@
   .show-all > .l0 .glyph-chev { opacity: 1; }
   .show-all > .l0:hover .glyph-chev { transform: rotate(-90deg) scale(1.2); }
   .show-all.open > .l0:hover .glyph-chev { transform: rotate(0deg) scale(1.2); }
+  /* The rail hides disclosure chevrons, but here the chevron IS the icon —
+     without this the row would collapse to nothing at all. */
+  .app.collapsed .show-all > .l0 .glyph-chev { display: block; opacity: 1; }
+  /* On the rail, opening Show all reveals the parked sections as icons in the
+     rail itself — not a flyout. The ID outranks the flyout rules on .l1-list. */
+  .app.collapsed #hidden-list {
+    display: none;
+    position: static;
+    min-width: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .app.collapsed .show-all.open > #hidden-list { display: block; }
+  .app.collapsed #hidden-list::before { content: none; }   /* no hover bridge */
+  .app.collapsed #hidden-list .flyout-title { display: none; }
+  /* revealed rows are ordinary rail rows: icon only, own flyout on hover */
+  .app.collapsed #hidden-list > .nav-group > .l0 { padding: 10px 12px; }
   #hidden-list { margin-top: 2px; }
   /* nested sections sit flush with their pinned counterparts */
   #hidden-list > .nav-group > .l0 { padding-left: 12px; }
@@ -992,6 +1008,39 @@
   .fav-add-btn:hover { background: #203660; }
   .fav-add-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
+  /* Collapsed tucks the rail away entirely and the canvas takes its place; it
+     slides back out only while the pointer is at the left edge or on the rail. */
+  /* Must clip while tucked away: the collapsed rail sets overflow:visible so
+     its flyouts can escape, which at width 0 spills the whole rail onto the
+     canvas. Only re-open the overflow once it has actually slid out. */
+  .app.collapsed .sidebar { width: 0; overflow: hidden; }
+  .app.collapsed.nav-peek .sidebar { width: 68px; overflow: visible; }
+
+  .nav-peek-zone {
+    display: none;
+    position: fixed;
+    left: 0; top: 0;
+    width: 18px; height: 100vh;
+    z-index: 45;
+    align-items: center;
+  }
+  .app.collapsed .nav-peek-zone { display: flex; }
+  /* while peeking the rail owns this strip, so stop intercepting its hovers */
+  .app.collapsed.nav-peek .nav-peek-zone { pointer-events: none; }
+  /* Light, because it sits in the 8px navy gutter beside the canvas card */
+  .nav-grabber {
+    width: 4px; height: 60px;
+    margin-left: 2px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, .3);
+    transition: background .18s ease, transform .18s ease, opacity .18s ease;
+  }
+  .nav-peek-zone:hover .nav-grabber {
+    background: rgba(255, 255, 255, .6);
+    transform: scaleX(1.4);
+  }
+  .app.collapsed.nav-peek .nav-grabber { opacity: 0; }
+
   .app.collapsed .nav-scroll { overflow: visible; }
 
   .app.collapsed .nav-item.l0 .label { opacity: 0; transition: opacity .12s ease; }
@@ -1025,13 +1074,6 @@
   .app.collapsed .l1-list .nav-item.l1 .label { color: var(--nav-text); }
   .app.collapsed .l1-list .nav-item.l1:hover { background: #203660; }
   .app.collapsed .l1-list .nav-item.l1.active { background: #24406e; }
-
-  /* Sections parked in "Show all" render as plain rows inside its flyout:
-     labels stay legible and they don't sprout their own nested flyouts. */
-  .app.collapsed .l1-list .nav-item.l0 .label { opacity: 1; }
-  .app.collapsed .l1-list .nav-item.l0 { padding: 9px 12px; border-radius: 8px; }
-  .app.collapsed .l1-list .nav-item.l0:hover { background: #203660; }
-  .app.collapsed #hidden-list .nav-group > .l1-list { display: none; }
 
   .flyout-title { display: none; }
   .app.collapsed .l1-list .flyout-title {
@@ -1129,7 +1171,11 @@
     background: var(--canvas-bg);
     margin: 8px 8px 8px 0;      /* blue nav wraps the card on top/right/bottom */
     border-radius: 6px;          /* PC: 6px all corners */
+    transition: margin-left var(--nav-dur) var(--panel-ease);
   }
+  /* With the rail tucked away there's no nav to sit flush against, so the card
+     takes the same 8px of blue on the left as it has on the other three sides. */
+  .app.collapsed .main { margin-left: 8px; }
   html.is-mac .main {            /* Mac: 12px, bottom-right 26px to match the window */
     border-radius: 12px 12px 26px 12px;
   }
@@ -1249,7 +1295,6 @@
     transition: background .12s ease, border-color .12s ease;
   }
   /* outranks `.topbar .tb-icon svg`, which the dropdown sits inside */
-  .topbar .bell-btn .ico-petals { width: 11px; height: 11px; flex-shrink: 0; }
   .bell-btn.secondary {
     border: 1px solid #cdd4e0; background: #fff; color: #2B3135;
   }
@@ -1418,7 +1463,7 @@
 
   /* ---------- NOTIFICATION BANNER ---------- */
   .notice-banner {
-    border: 1px solid #E2E9ED;
+    border: 1px solid #D2D9DD;
     border-radius: 12px;
     padding: 16px 22px;
     background: #fff;
@@ -1449,7 +1494,9 @@
     margin-left: 4px;
   }
   .notice-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
     padding: 3px 8px;
     border-radius: 5px;
     background: #FCEBEC;
@@ -1459,8 +1506,11 @@
     vertical-align: middle;
     margin-left: 6px;
   }
+  .notice-badge svg { width: 12px; height: 12px; flex-shrink: 0; }
+  /* baseline, not flex-end: the buttons' label sits on the same line as the
+     message text, which drops them slightly and grows the row with them */
   .notice-row {
-    display: flex; align-items: flex-end; gap: 16px;
+    display: flex; align-items: baseline; gap: 16px;
     flex-wrap: wrap;
   }
   .notice-sub { flex: 1; min-width: 200px; font-size: 15px; font-weight: 400; color: #2B3135; line-height: 1.45; margin-bottom: 0; }
@@ -1474,7 +1524,7 @@
   /* Banner entrance: slides down from under the welcome title after widgets land */
   @keyframes bannerSlideIn {
     from { max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; opacity: 0; border-color: transparent; }
-    to   { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #E2E9ED; }
+    to   { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D2D9DD; }
   }
   .notice-banner {
     max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0;
@@ -1485,14 +1535,14 @@
   }
   /* once the case is handled the banner rolls back up the way it came */
   @keyframes bannerSlideOut {
-    from { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #E2E9ED; }
+    from { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D2D9DD; }
     to   { max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; opacity: 0; border-color: transparent; }
   }
   .home.play .notice-banner.resolved {
     animation: bannerSlideOut .45s var(--panel-ease) forwards;
   }
   @media (prefers-reduced-motion: reduce) {
-    .notice-banner { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #E2E9ED; }
+    .notice-banner { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D2D9DD; }
     .home.play .notice-banner { animation: none; }
   }
   /* sized to match the Amount / Count segmented buttons */
@@ -1516,7 +1566,6 @@
   .btn-sm.tertiary { background: none; border-color: transparent; color: #727E85; }
   .btn-sm.tertiary:hover { background: #f1f4f9; border-color: transparent; color: #2B3135; }
   .btn-sm svg { width: 14px; height: auto; }
-  .btn-sm .ico-petals { width: 15px; height: 15px; }
 
   /* ---------- ALL NOTIFICATIONS (AI panel view) ---------- */
   .ai-notices { display: none; flex-direction: column; gap: 10px; }
@@ -1554,7 +1603,11 @@
   }
 
   .card {
-    border: 1px solid #E2E9ED;
+    /* the widget itself holds a fixed height, so panels opening and closing
+       never reflow the dashboard even as the charts re-fit their width */
+    height: 375px;
+    overflow: hidden;
+    border: 1px solid #D2D9DD;
     border-radius: 12px;
     padding: 20px 22px;
     background: #fff;
@@ -1616,7 +1669,13 @@
     box-shadow: 0 1px 2px rgba(0, 17, 44, .12);
   }
 
-  .chart { width: 100%; height: 180px; display: block; margin-top: 16px; }
+  /* Fixed height AND full width at every canvas size. That is only possible if
+     the SVG stops scaling uniformly (preserveAspectRatio="none"), which
+     stretches it horizontally — so strokes are pinned to screen px here and
+     the text is counter-scaled in JS (fitCharts) to undo the stretch. */
+  .chart { width: 100%; height: 247px; display: block; margin-top: 16px; }
+  .chart.chart-tall { height: 273px; }   /* matches its taller 700x310 viewBox */
+  .chart line, .chart polyline, .chart rect { vector-effect: non-scaling-stroke; }
 
   /* Chart entrance: lines draw on, bars grow from their baseline.
      Resting/armed state = hidden; adding .play on .home animates to default. */
@@ -1876,6 +1935,11 @@
     </div>
   </div>
   <div class="app">
+    <!-- Left-edge hover target that peeks the icon rail back out -->
+    <div class="nav-peek-zone" id="nav-peek-zone" aria-hidden="true">
+      <span class="nav-grabber"></span>
+    </div>
+
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
       <div class="org">
@@ -2082,7 +2146,6 @@
                   <div class="bell-item-sub">Northwind Retail's $48,000.00 renewal failed</div>
                   <div class="bell-item-actions">
                     <button class="bell-btn secondary" type="button" id="bell-resolve">
-                      <svg class="ico-petals" viewBox="16 16 60 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.45"/><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.65"/><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.85"/></svg>
                       Resolve
                     </button>
                     <button class="bell-btn tertiary" type="button">View</button>
@@ -2096,7 +2159,6 @@
                   <div class="bell-item-sub">14 chargebacks in the last 24 hours</div>
                   <div class="bell-item-actions">
                     <button class="bell-btn secondary" type="button">
-                      <svg class="ico-petals" viewBox="16 16 60 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.45"/><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.65"/><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.85"/></svg>
                       Resolve
                     </button>
                     <button class="bell-btn tertiary" type="button">View</button>
@@ -2110,7 +2172,6 @@
                   <div class="bell-item-sub">Average response time exceeded 500ms</div>
                   <div class="bell-item-actions">
                     <button class="bell-btn secondary" type="button">
-                      <svg class="ico-petals" viewBox="16 16 60 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.45"/><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.65"/><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.85"/></svg>
                       Resolve
                     </button>
                     <button class="bell-btn tertiary" type="button">View</button>
@@ -2140,7 +2201,7 @@
 
           <div class="notice-banner">
             <div class="notice-head">
-              <div class="card-title">Notifications <span class="notice-badge">Critical</span></div>
+              <div class="card-title">Notifications <span class="notice-badge"><svg viewBox="0 0 24 24" fill="#d1344a" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#fff"/></svg>Critical</span></div>
               <button class="notice-overflow" id="notice-seeall" type="button" title="More notifications"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
             </div>
             <div class="notice-row">
@@ -2148,7 +2209,6 @@
               <div class="notice-actions">
                 <button class="btn-sm tertiary" type="button">View transaction</button>
                 <button class="btn-sm primary" id="notice-resolve" type="button">
-                  <svg class="ico-petals" viewBox="16 16 60 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z" fill="#1f5fe0" opacity="0.45"/><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#1f5fe0"/><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z" fill="#1f5fe0" opacity="0.65"/><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z" fill="#1f5fe0" opacity="0.85"/></svg>
                   Let's resolve
                 </button>
               </div>
@@ -2165,7 +2225,7 @@
                 </div>
               </div>
               <div class="card-legend"><span class="lg"><span class="dot light"></span>Previous period</span><span class="lg"><span class="dot dark"></span>Last 7 days</span></div>
-              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <g font-size="12" fill="#727E85">
                   <line x1="44" y1="16" x2="680" y2="16" stroke="#eef1f6"/><text x="34" y="20" text-anchor="end">60%</text>
                   <line x1="44" y1="88" x2="680" y2="88" stroke="#eef1f6"/><text x="34" y="92" text-anchor="end">55%</text>
@@ -2186,13 +2246,30 @@
                   <div class="card-sub">Last update: 22 hours ago</div>
                 </div>
               </div>
-              <div class="card-legend"><span class="lg"><span class="dot light"></span>Previous period</span><span class="lg"><span class="dot dark"></span>Last 7 days</span></div>
-              <svg class="chart" viewBox="0 0 700 150" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-                <text x="12" y="63" font-size="12" fill="#727E85">Refused</text>
-                <rect class="bar-h" x="80" y="44" width="581" height="16" rx="4" fill="#bcd6fb"/>
-                <rect class="bar-h" x="80" y="66" width="568" height="16" rx="4" fill="#1f5fe0"/>
+              <!-- No legend: one gradient series needs no key, so the chart takes
+                   that height instead (viewBox is taller to match). -->
+              <svg class="chart chart-tall" viewBox="0 0 700 310" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <!-- One ramp mapped to the axis itself (userSpaceOnUse), not to
+                       each bar — so colour reads as position on the scale. -->
+                  <linearGradient id="failedGrad" gradientUnits="userSpaceOnUse" x1="100" y1="0" x2="680" y2="0">
+                    <stop offset="0" stop-color="#1f5fe0"/>
+                    <stop offset="1" stop-color="#194cb3"/>
+                  </linearGradient>
+                </defs>
+                <g font-size="11.5" fill="#727E85">
+                  <text x="0" y="52">6/30-7/6</text>
+                  <text x="0" y="104">7/7-13</text>
+                  <text x="0" y="156">7/14-20</text>
+                  <text x="0" y="208">7/21-27</text>
+                </g>
+                <rect class="bar-h" x="100" y="30"  width="510" height="34" rx="6" fill="url(#failedGrad)"/>
+                <rect class="bar-h" x="100" y="82"  width="539" height="34" rx="6" fill="url(#failedGrad)"/>
+                <rect class="bar-h" x="100" y="134" width="528" height="34" rx="6" fill="url(#failedGrad)"/>
+                <rect class="bar-h" x="100" y="186" width="557" height="34" rx="6" fill="url(#failedGrad)"/>
+                <line x1="100" y1="250" x2="680" y2="250" stroke="#eef1f6"/>
                 <g font-size="11" fill="#727E85" text-anchor="middle">
-                  <text x="80" y="104">0%</text><text x="140" y="104">10%</text><text x="200" y="104">20%</text><text x="260" y="104">30%</text><text x="320" y="104">40%</text><text x="380" y="104">50%</text><text x="440" y="104">60%</text><text x="500" y="104">70%</text><text x="560" y="104">80%</text><text x="620" y="104">90%</text><text x="680" y="104">100%</text>
+                  <text x="100" y="276">0%</text><text x="158" y="276">10%</text><text x="216" y="276">20%</text><text x="274" y="276">30%</text><text x="332" y="276">40%</text><text x="390" y="276">50%</text><text x="448" y="276">60%</text><text x="506" y="276">70%</text><text x="564" y="276">80%</text><text x="622" y="276">90%</text><text x="680" y="276">100%</text>
                 </g>
               </svg>
             </div>
@@ -2207,7 +2284,7 @@
                 <div class="seg"><button class="on">Amount</button><button>Count</button></div>
               </div>
               <div class="card-legend"><span class="lg"><span class="dot light"></span>Previous period</span><span class="lg"><span class="dot dark"></span>Last 7 days</span></div>
-              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <g font-size="12" fill="#727E85">
                   <line x1="44" y1="16" x2="680" y2="16" stroke="#eef1f6"/><text x="34" y="20" text-anchor="end">80</text>
                   <line x1="44" y1="70" x2="680" y2="70" stroke="#eef1f6"/><text x="34" y="74" text-anchor="end">60</text>
@@ -2235,7 +2312,7 @@
                 <div class="seg"><button class="on">Amount</button><button>Count</button></div>
               </div>
               <div class="card-legend"><span class="lg"><span class="dot light"></span>Previous period</span><span class="lg"><span class="dot dark"></span>Last 7 days</span></div>
-              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <g font-size="12" fill="#727E85">
                   <line x1="44" y1="16" x2="680" y2="16" stroke="#eef1f6"/><text x="34" y="20" text-anchor="end">8k</text>
                   <line x1="44" y1="70" x2="680" y2="70" stroke="#eef1f6"/><text x="34" y="74" text-anchor="end">6k</text>
@@ -2258,15 +2335,15 @@
                 </div>
                 <div class="seg"><button class="on">Amount</button><button>Count</button></div>
               </div>
-              <svg class="chart" viewBox="0 0 700 260" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <g font-size="12.5" fill="#727E85">
-                  <text x="8" y="42">Visa</text><text x="8" y="90">Mastercard</text><text x="8" y="138">PayPal</text><text x="8" y="186">iDEAL</text><text x="8" y="234">Amex</text>
+                  <text x="8" y="42">Visa</text><text x="8" y="94">Mastercard</text><text x="8" y="146">PayPal</text><text x="8" y="198">iDEAL</text><text x="8" y="250">Amex</text>
                 </g>
                 <g fill="#1f5fe0" class="bar-h">
-                  <rect x="150" y="26" width="426" height="22" rx="4"/><rect x="150" y="74" width="322" height="22" rx="4"/><rect x="150" y="122" width="125" height="22" rx="4"/><rect x="150" y="170" width="94" height="22" rx="4"/><rect x="150" y="218" width="62" height="22" rx="4"/>
+                  <rect x="150" y="24" width="426" height="26" rx="5"/><rect x="150" y="76" width="322" height="26" rx="5"/><rect x="150" y="128" width="125" height="26" rx="5"/><rect x="150" y="180" width="94" height="26" rx="5"/><rect x="150" y="232" width="62" height="26" rx="5"/>
                 </g>
                 <g font-size="12.5" fill="#727E85">
-                  <text x="588" y="42">42%</text><text x="484" y="90">31%</text><text x="287" y="138">12%</text><text x="256" y="186">9%</text><text x="224" y="234">6%</text>
+                  <text x="588" y="42">42%</text><text x="484" y="94">31%</text><text x="287" y="146">12%</text><text x="256" y="198">9%</text><text x="224" y="250">6%</text>
                 </g>
               </svg>
             </div>
@@ -2280,7 +2357,7 @@
                 </div>
               </div>
               <div class="card-legend"><span class="lg"><span class="dot dark"></span>Last 7 days</span></div>
-              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+              <svg class="chart" viewBox="0 0 700 280" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
                 <g font-size="12" fill="#727E85">
                   <line x1="44" y1="16" x2="680" y2="16" stroke="#eef1f6"/><text x="34" y="20" text-anchor="end">0.8%</text>
                   <line x1="44" y1="70" x2="680" y2="70" stroke="#eef1f6"/><text x="34" y="74" text-anchor="end">0.6%</text>
@@ -2833,8 +2910,16 @@
         }
         createNew.addEventListener('mouseenter', showCreateMenu);
         createNew.addEventListener('mouseleave', hideCreateMenu);
-        createMenu.addEventListener('mouseenter', function () { clearTimeout(createHide); });
-        createMenu.addEventListener('mouseleave', hideCreateMenu);
+        // the menu is on <body>, so hovering it counts as leaving the sidebar —
+        // hold the rail's peek open while the pointer is inside it
+        createMenu.addEventListener('mouseenter', function () {
+          clearTimeout(createHide);
+          openPeek();
+        });
+        createMenu.addEventListener('mouseleave', function () {
+          hideCreateMenu();
+          closePeek();
+        });
       }
 
       // --- Pin / unpin L0 sections into the "Show all" drawer ---
@@ -2925,8 +3010,32 @@
       if (collapseBtn) {
         collapseBtn.addEventListener('click', function () {
           var collapsed = app.classList.toggle('collapsed');
+          if (!collapsed) app.classList.remove('nav-peek');
           collapseBtn.setAttribute('data-tip', collapsed ? 'Expand menu' : 'Collapse menu');
         });
+      }
+
+      // --- Peek the collapsed rail from the left edge ---
+      var peekZone = document.getElementById('nav-peek-zone');
+      var sidebarEl = document.querySelector('.sidebar');
+      var peekTimer = null;
+
+      function openPeek() {
+        clearTimeout(peekTimer);
+        if (app.classList.contains('collapsed')) app.classList.add('nav-peek');
+      }
+      // A short delay bridges the gap between leaving one element and entering
+      // the next, so crossing from the strip onto the rail doesn't flicker.
+      function closePeek() {
+        clearTimeout(peekTimer);
+        peekTimer = setTimeout(function () { app.classList.remove('nav-peek'); }, 180);
+      }
+
+      if (peekZone) {
+        peekZone.addEventListener('mouseenter', openPeek);
+        peekZone.addEventListener('mouseleave', closePeek);
+        sidebarEl.addEventListener('mouseenter', openPeek);
+        sidebarEl.addEventListener('mouseleave', closePeek);
       }
 
       // --- Adyen Intelligence panel: open from the AI icon, close from panel controls ---
@@ -3290,7 +3399,6 @@
       var aiBody = document.querySelector('.ai-body');
       var aiChat = document.querySelector('.ai-chat');
       var aiField = document.querySelector('.ai-input input');
-      var aiMark = '<span class="ai-msg-mark"><svg viewBox="0 0 101 66" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M53 0.5H0.5V16.5H37.5V48.5H26.5V27H0.5V53.5C0.5 60.1274 5.87259 65.5 12.5 65.5H65V12.5C65 5.87258 59.6274 0.5 53 0.5Z" fill="#1f5fe0"/><path d="M85 0.5H100V9.5C100 16.1274 94.6274 21.5 88 21.5H73V12.5C73 5.87258 78.3726 0.5 85 0.5Z" fill="#1f5fe0"/><path d="M88 27.5H73V65.5H100V39.5C100 32.8726 94.6274 27.5 88 27.5Z" fill="#1f5fe0"/></svg></span>';
       var genericReply = "I'm looking at your live Adyen data now. Everything is tracking in line with the last 30 days and nothing is flagged. Ask me to dig into a specific metric — auth rate, refusals, chargebacks, or a payment method — for a detailed breakdown.";
 
       function aiSend(query, response) {
@@ -3299,7 +3407,7 @@
         u.textContent = query;
         var b = document.createElement('div');
         b.className = 'ai-msg-bot';
-        b.innerHTML = aiMark + '<span class="ai-msg-text"></span>';
+        b.innerHTML = '<span class="ai-msg-text"></span>';
         b.querySelector('.ai-msg-text').textContent = response;
         aiChat.appendChild(u);
         aiChat.appendChild(b);
@@ -3352,6 +3460,39 @@
           t = setTimeout(function () { el.classList.remove('scrolling'); }, 800);
         });
       });
+
+      // --- Charts: fixed height, full width, undistorted labels ---
+      // preserveAspectRatio="none" is what lets a chart hold one height while
+      // filling any card width, but it stretches the coordinate system on x.
+      // Strokes are pinned by vector-effect; text needs an explicit counter-
+      // scale about its own anchor so glyphs stay true at every canvas width.
+      function fitCharts() {
+        document.querySelectorAll('.chart').forEach(function (svg) {
+          var vb = svg.viewBox.baseVal;
+          var r = svg.getBoundingClientRect();
+          if (!r.width || !r.height || !vb.width || !vb.height) return;
+          var k = (r.height / vb.height) / (r.width / vb.width);
+          svg.querySelectorAll('text').forEach(function (t) {
+            var x = parseFloat(t.getAttribute('x')) || 0;
+            var y = parseFloat(t.getAttribute('y')) || 0;
+            t.setAttribute('transform',
+              'translate(' + x + ' ' + y + ') scale(' + k.toFixed(4) + ' 1) translate(' + (-x) + ' ' + (-y) + ')');
+          });
+        });
+      }
+
+      var fitRaf = null;
+      function scheduleFit() {
+        cancelAnimationFrame(fitRaf);
+        fitRaf = requestAnimationFrame(fitCharts);
+      }
+      fitCharts();
+      window.addEventListener('resize', scheduleFit);
+      if (window.ResizeObserver) {
+        // follows the panel's width transition frame by frame
+        var chartRO = new ResizeObserver(scheduleFit);
+        document.querySelectorAll('.chart').forEach(function (c) { chartRO.observe(c); });
+      }
 
       function setActive(el) {
         document.querySelectorAll('.nav-item.active').forEach(function (a) {
