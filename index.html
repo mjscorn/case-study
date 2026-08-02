@@ -7,23 +7,23 @@
 <style>
   :root {
     /* Adyen palette */
-    --nav-bg: #0a1938;          /* dark navy sidebar */
-    --nav-bg-hover: #16264a;    /* hover / active row */
-    --nav-bg-active: #1b2d54;   /* selected row */
-    --nav-text: #e8ecf5;        /* primary nav text */
-    --nav-text-dim: #8b98b8;    /* section labels / muted */
-    --nav-divider: #1d2b4d;
+    --nav-bg: #F8FAFB;          /* light surface: nav, panels, search fill */
+    --nav-bg-hover: rgba(22, 88, 122, .08);   /* #16587A @ 8% */
+    --nav-bg-active: rgba(22, 88, 122, .12);  /* #16587A @ 12% */
+    --nav-text: #2B3135;        /* primary nav text */
+    --nav-text-dim: #6E7681;    /* section labels / muted */
+    --nav-divider: #D3D6DC;
+    --sign-in-bg: #0a1938;      /* sign-in stays navy, then fades to --nav-bg */
     --green: #0abf53;           /* Adyen green logo */
     --canvas-bg: #ffffff;
     --topbar-icon: #4a5878;
-    --avatar-bg: #0a1938;
-    --favorites-card: #16264a;
+    --favorites-card: rgba(22, 88, 122, .04);   /* #16587A @ 4%, kin to hover/active */
     --sidebar-w: 284px;
     /* shared easing for all panel motion (panel slide, expand, nav rail) */
     --panel-ease: cubic-bezier(.8, 0, .16, 1);
     --panel-dur: .5s;
     --nav-dur: .3s;               /* sidebar collapse/expand, same easing */
-    --topbar-h: 64px;
+    --topbar-h: 54px;             /* 38px search bar + 8px above and below */
     --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
@@ -38,10 +38,12 @@
 
   .app {
     display: flex;
+    flex-direction: column;      /* persistent global bar on top of everything */
     height: 100vh;
     overflow: hidden;
     background: var(--nav-bg);
   }
+  .app-body { display: flex; flex: 1; min-height: 0; }
   /* Canvas + AI panel share a flex row, so the panel's animated width is what
      squeezes the canvas card — one continuous motion, both directions. */
   .workarea { display: flex; flex: 1; min-width: 0; overflow: hidden; }
@@ -59,29 +61,28 @@
     justify-content: flex-end;
     transition: flex-basis var(--panel-dur) var(--panel-ease);
   }
-  .app.ai-open .ai-panel { flex-basis: 388px; }
+  .app.ai-open .ai-panel { flex-basis: 380px; }  /* = card width: no leftover gutter */
   .app.ai-open.ai-full .ai-panel { flex-basis: 100%; }
 
-  /* Active indicator: 4px blue bar that slides in right-to-left under the icon */
+  /* AI trigger is a plain collapse/expand toggle: its caret mirrors the panel
+     state the same way the nav one does. The svg is scaleX(-1) mirrored, so
+     the inner flip below yields "points left" (open me) when closed and
+     "points right" (tuck me away) when open. */
   .ai-trigger { position: relative; }
-  .ai-bar {
-    position: absolute;
-    left: 3px; right: 3px;        /* 4px wider than the glyph on each side */
-    bottom: -15px;                /* sits on the global bar's baseline */
-    height: 4px; border-radius: 2px;
-    background: #1f5fe0;
-    opacity: 0;
-    transform: translateX(18px);
-    transition: transform var(--panel-dur) var(--panel-ease), opacity .18s ease;
-    pointer-events: none;
+  .ai-trigger .ai-caret {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scaleX(-1);
+    transition: transform .2s ease;
   }
-  .app.ai-open .ai-bar { opacity: 1; transform: translateX(0); }
+  .app.ai-open .ai-trigger .ai-caret { transform: scaleX(1); }
   /* Full screen: the main canvas fades out and the panel slides across to fill
      it, while the sidebar drops to its icon-only rail. */
   /* the card itself is squeezed to nothing by the panel; its contents fade */
   .app.ai-open.ai-full .main { pointer-events: none; }
-  .topbar, .canvas { transition: opacity calc(var(--panel-dur) * .6) ease; }
-  .app.ai-open.ai-full .topbar,
+  /* Only the canvas fades in full screen — the global bar is persistent and
+     stays put (it used to live inside the canvas card, hence the old fade). */
+  .canvas { transition: opacity calc(var(--panel-dur) * .6) ease; }
   .app.ai-open.ai-full .canvas { opacity: 0; }
   .app.ai-open.ai-full .ai-card { max-width: none; }
 
@@ -98,16 +99,13 @@
   .ai-card {
     width: 100%;
     max-width: 380px;
-    height: calc(100vh - 16px);
-    margin: 8px 8px 8px 0;
-    background: #fff;
-    border-radius: 6px;
+    height: 100%;
+    background: var(--nav-bg);   /* same grey the nav sits on, no seam */
     display: flex;
     flex-direction: row;
     overflow: hidden;
     position: relative;          /* anchors the overflow menu */
   }
-  html.is-mac .ai-card { border-radius: 12px; }
 
   .ai-content { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
 
@@ -115,8 +113,8 @@
   .ai-side {
     flex-grow: 0; flex-shrink: 0; flex-basis: 0px;
     overflow: hidden;
-    background: #f7f9fc;
-    border-right: 1px solid #eef1f6;
+    background: #ffffff;
+    border-right: 1px solid #D5DEE3;
     transition: flex-basis var(--panel-dur) var(--panel-ease);
   }
   /* Entering full screen: the rail expands in sync with the panel so the
@@ -136,22 +134,27 @@
   /* hold the card at full width so it reduces with the panel from the left
      instead of snapping narrow and stranding empty space on the right */
   .app.ai-leaving-full .ai-card { max-width: none; }
-  .ai-side-inner { width: 248px; height: 100%; overflow-y: auto; padding: 14px 12px 20px; }
+  .ai-side-inner { width: 248px; height: 100%; overflow-y: auto; padding: 8px 12px 20px; }  /* New row centres on the shared band */
 
+  /* Same recipe as the left nav: L0 rows for the top items, L1 weight and
+     color for the pinned / recent entries underneath. */
   .ai-side-item {
-    display: flex; align-items: center; gap: 11px;
+    display: flex; align-items: center; gap: 13px;
     width: 100%; text-align: left;
     background: none; border: 0;
-    padding: 9px 10px; border-radius: 8px;
-    font: inherit; font-size: 13.5px; font-weight: 500; color: #2B3135;
+    padding: 10px 12px; border-radius: 9px;
+    font: inherit; font-size: 14.5px; font-weight: 500; color: var(--nav-text);
     cursor: pointer;
     transition: background .12s ease;
   }
-  .ai-side-item:hover { background: #e9eff8; }
-  .ai-side-item svg { width: 18px; height: 18px; flex-shrink: 0; color: #4a5878; }
+  .ai-side-item:hover { background: var(--nav-bg-hover); }
+  .ai-side-item:active { background: var(--nav-bg-active); }
+  .ai-side-item svg { width: 20px; height: 20px; flex-shrink: 0; }
   .ai-side-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ai-side-item.sub { font-weight: 400; color: #727E85; padding-left: 12px; padding-right: 4px; }
-  .ai-side-item.sub:hover { color: #2B3135; }
+  .ai-side-item.sub {
+    font-size: 14px; font-weight: 400; color: #2B3135;
+    padding: 8px 4px 8px 12px;
+  }
   .ai-side-item.sub span { flex: 1; min-width: 0; }
 
   /* overflow dots — revealed on hover of a pinned / recent row */
@@ -166,7 +169,7 @@
   }
   .ai-side-item.sub:hover .ai-side-more,
   .ai-side-more.open { opacity: 1; }
-  .ai-side-more:hover { background: #dbe4f2; color: #2B3135; }
+  .ai-side-more:hover { background: var(--nav-bg-hover); color: #2B3135; }
   .ai-side-more svg { width: 16px; height: 16px; }
 
   .ai-menu {
@@ -193,21 +196,19 @@
   .ai-menu-item.danger, .ai-menu-item.danger svg { color: #d1344a; }
   .ai-menu-item.danger:hover { background: #fdf0f2; }
   .ai-menu-sep { height: 1px; background: #eef1f6; margin: 5px 4px; }
-  .ai-side-new { font-weight: 700; color: #1f5fe0; margin-bottom: 10px; }
-  .ai-side-new svg { color: #1f5fe0; }
   .ai-side-group { display: flex; flex-direction: column; gap: 1px; }
   .ai-side-label {
-    font-size: 11px; font-weight: 700; letter-spacing: .6px;
-    text-transform: uppercase; color: #727E85;
-    padding: 6px 10px; margin-top: 18px;
+    font-size: 11px; font-weight: 600; letter-spacing: .8px;
+    text-transform: uppercase; color: var(--nav-text-dim);
+    padding: 6px 12px; margin-top: 18px;
   }
 
   .ai-head {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 12px 12px 14px;
-    border-bottom: 1px solid #eef1f6;
+    padding: 12px 12px 12px 14px;   /* 32px buttons set the row: centres ~28 */
+    border-bottom: 1px solid #D5DEE3;
     flex-shrink: 0;
   }
   .ai-title { flex: 1; font-size: 15px; font-weight: 700; color: #2B3135; }
@@ -219,7 +220,8 @@
     color: #4a5878; cursor: pointer;
     transition: background .12s ease, color .12s ease;
   }
-  .ai-icon-btn:hover { background: #f1f4f9; color: #2B3135; }
+  .ai-icon-btn:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-icon-btn:active { background: var(--nav-bg-active); }
   .ai-icon-btn svg { width: 20px; height: 20px; }
   /* expand/collapse glyph swaps with the panel state */
   .ai-expand .ico-in { display: none; }
@@ -336,7 +338,8 @@
 
   /* evidence: the actual transaction rows */
   .ai-evidence {
-    border: 1px solid #E2E9ED; border-radius: 10px;
+    background: #fff;
+    border: 1px solid #D5DEE3; border-radius: 12px;   /* same as canvas widgets */
     overflow: hidden; margin-top: 10px;
   }
   .ai-ev-row {
@@ -443,15 +446,17 @@
     opacity: 0; transition: opacity .15s ease;
   }
   .ai-case:hover .ai-case-toolbar { opacity: 1; }
+  /* Matches the composer-meta icons: same box, size, colors, hover */
   .ai-tb-icon {
     display: flex; align-items: center; justify-content: center;
-    width: 28px; height: 28px;
+    width: 24px; height: 24px;
     border: none; border-radius: 6px; background: none;
-    color: #9ca3af; cursor: pointer;
+    color: #4a5878; cursor: pointer;
     transition: background .12s ease, color .12s ease;
   }
   .ai-tb-icon svg { width: 14px; height: 14px; }
-  .ai-tb-icon:hover { background: #f1f4f9; color: #5f6b7a; }
+  .ai-tb-icon:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-tb-icon:active { background: var(--nav-bg-active); }
   .ai-tb-icon.tip::after { font-size: 10px; padding: 5px 9px; border-radius: 6px; }
 
   /* ---------- AI CASE FOLLOW-UP RESPONSE ---------- */
@@ -493,7 +498,7 @@
   .ai-followup-text p:last-child { margin-bottom: 0; }
 
   .ai-info-card {
-    border: 1px solid #e2e6ee; border-radius: 10px;
+    border: 1px solid #D5DEE3; border-radius: 12px;   /* same as canvas widgets */
     background: #fff; overflow: hidden;
     margin-top: 6px;
   }
@@ -501,7 +506,7 @@
   .ai-info-head {
     display: flex; align-items: center; gap: 8px;
     padding: 11px 14px;
-    background: #f7f9fc; border-bottom: 1px solid #e2e6ee;
+    background: #f7f9fc; border-bottom: 1px solid #D5DEE3;
     font-size: 12px; font-weight: 700; text-transform: uppercase;
     letter-spacing: .5px; color: #727E85;
   }
@@ -517,7 +522,7 @@
   .ai-info-row a:hover { text-decoration: underline; }
   .ai-retry-bar {
     display: flex; align-items: center; gap: 10px;
-    padding: 12px 14px; border-top: 1px solid #e2e6ee;
+    padding: 12px 14px; border-top: 1px solid #D5DEE3;
   }
   .ai-retry-btn {
     display: flex; align-items: center; gap: 6px;
@@ -655,13 +660,56 @@
   .ai-input-btn {
     width: 30px; height: 30px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    border: 0; background: none; border-radius: 50%;
+    border: 0; background: none; border-radius: 6px;   /* box, not circle */
     color: #4a5878; cursor: pointer;
     transition: background .12s ease;
   }
-  .ai-input-btn:hover { background: #f1f4f9; }
+  .ai-input-btn:hover { background: var(--nav-bg-hover); }
+  .ai-input-btn:active { background: var(--nav-bg-active); }
   .ai-input-btn svg { width: 18px; height: 18px; }
-  .ai-disclaimer { margin-top: 10px; font-size: 11px; color: #727E85; line-height: 1.4; text-align: center; }
+
+  /* Right edge of the chat bar: stop at rest, enter while typing (the input
+     clears on submit, which lands it back on stop) */
+  .ai-send-btn {
+    width: 24px; height: 24px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; border-radius: 6px;
+    color: #4a5878; cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .ai-send-btn:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-send-btn:active { background: var(--nav-bg-active); }
+  .ai-send-btn svg { width: 15px; height: 15px; }
+  .ai-send-btn .ico-enter { display: none; }
+  .ai-input.typing .ai-send-btn .ico-stop { display: none; }
+  .ai-input.typing .ai-send-btn .ico-enter { display: block; }
+
+  /* Meta row under the chat bar: attach/voice on the left, model + token
+     wheel on the right */
+  .ai-composer-meta {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 8px;
+    padding: 0 2px;
+  }
+  .acm-left { display: flex; align-items: center; gap: 2px; }
+  .acm-right { display: flex; align-items: center; gap: 10px; }
+  .ai-composer-meta .ai-input-btn { width: 24px; height: 24px; }
+  .ai-composer-meta .ai-input-btn svg { width: 14px; height: 14px; }
+  .ai-model-btn {
+    display: flex; align-items: center; gap: 4px;
+    font: inherit; font-size: 11.5px; font-weight: 500;
+    color: #727E85;
+    background: none; border: 0; border-radius: 6px;
+    padding: 3px 6px;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .ai-model-btn:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-model-btn:active { background: var(--nav-bg-active); }
+  .ai-model-btn svg { width: 12px; height: 12px; }
+  .ai-token-wheel { display: flex; }
+  .ai-token-wheel svg { width: 16px; height: 16px; display: block; }
+  .ai-token-wheel.tip::after { font-size: 10px; padding: 5px 9px; border-radius: 6px; }
 
   /* ---------- SIDEBAR ---------- */
   .sidebar {
@@ -670,7 +718,7 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    height: 100vh;
+    height: 100%;               /* fills .app-body, below the global bar */
     overflow: hidden;
     width: var(--sidebar-w);
     will-change: width;
@@ -682,13 +730,13 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 18px 16px 16px;
+    padding: 10px 16px;         /* 36px logo centres on the shared 56px band */
     overflow: hidden;
   }
   .org-logo {
     width: 36px; height: 36px;
     border-radius: 9px;
-    background: var(--green);
+    background: #1f5fe0;         /* chart-bar blue; compass glyph inside is white */
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
@@ -715,7 +763,7 @@
     flex: 1;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    padding: 4px 12px 12px;
+    padding: 14px 12px 12px;   /* org pb 10 + 14 keeps the 24px gap to Home */
   }
   /* Auto-hiding scrollbars: appear only while actually scrolling, then fade */
   .nav-scroll, .canvas, .ai-body { scrollbar-width: thin; scrollbar-color: transparent transparent; }
@@ -731,8 +779,8 @@
     border-radius: 6px;
     transition: background-color .35s ease;
   }
-  .nav-scroll.scrolling { scrollbar-color: rgba(255,255,255,.35) transparent; }
-  .nav-scroll.scrolling::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,.3); }
+  .nav-scroll.scrolling { scrollbar-color: rgba(10,25,56,.35) transparent; }
+  .nav-scroll.scrolling::-webkit-scrollbar-thumb { background-color: rgba(10,25,56,.28); }
   .canvas.scrolling, .ai-body.scrolling { scrollbar-color: rgba(10,25,56,.35) transparent; }
   .canvas.scrolling::-webkit-scrollbar-thumb,
   .ai-body.scrolling::-webkit-scrollbar-thumb { background-color: rgba(10,25,56,.28); }
@@ -765,6 +813,13 @@
   /* Favorites row: expanded shows #fav-content under the row; the icon rail
      falls back to the same hover flyout every other group uses. */
   #fav-content { display: none; padding: 2px 0 6px; }
+  /* favorited pages read exactly like L1 rows: indented, lighter weight */
+  #fav-content .fav-item {
+    padding: 8px 12px 8px 47px;
+    font-size: 14px;
+    font-weight: 400;
+  }
+  #fav-content .fav-item .label { color: #2B3135; }
   .fav-header.open > #fav-content { display: block; }
   /* outranks `.nav-group.open .l1-list`, which would otherwise show the
      collapsed-rail flyout inline when the row is expanded */
@@ -828,9 +883,9 @@
   .nav-item.l1 {
     padding: 8px 12px 8px 47px;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;          /* a step lighter than the L0 rows above them */
   }
-  .nav-item.l1 .label { color: #c1cbe0; }
+  .nav-item.l1 .label { color: #2B3135; }
   .nav-item.l1:hover .label { color: var(--nav-text); }
 
   /* Star affordance on L1 rows */
@@ -844,7 +899,7 @@
   }
   .star svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; }
   .nav-item.l1:hover .star { opacity: 1; }
-  .nav-item.l1.faved .star { opacity: 1; color: #ffffff; }
+  .nav-item.l1.faved .star { opacity: 1; color: var(--nav-text-dim); }  /* matches filled pins */
   .nav-item.l1.faved .star svg { fill: currentColor; stroke: currentColor; }
 
   /* Pin affordance on L0 rows — appears on hover, filled when pinned */
@@ -858,7 +913,7 @@
   }
   .pin svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; }
   .nav-item.l0:hover .pin { opacity: 1; }
-  .nav-item.l0:hover .pin:hover { color: #ffffff; }
+  .nav-item.l0:hover .pin:hover { color: var(--nav-text); }  /* dark, not white, on the light bg */
   .nav-group.unpinned > .l0 .pin svg { fill: none; }
   .nav-group:not(.unpinned) > .l0 .pin svg { fill: currentColor; }
   .app.collapsed .pin { display: none; }
@@ -896,62 +951,48 @@
   /* the show-all row itself is never pinnable */
   .show-all > .l0 .pin { display: none; }
 
-  /* Create new: a menu, not a section — plus icon stays, no chevron, no pin */
-  .create-new { position: relative; }
-  .create-new > .l0 .pin { display: none; }
-  .create-new > .l0 .glyph-chev { display: none; }
-  .create-new > .l0:hover .icon { opacity: 1; }
-  /* right-facing chevron trails the label while the menu is available */
-  .create-caret {
-    margin-left: auto;
-    display: flex;
-    color: var(--nav-text-dim);
-    opacity: 0;
-    transition: opacity .12s ease;
+  /* "New" button in the global bar; its create menu drops under it */
+  .tb-new-wrap { position: relative; display: flex; }
+  .tb-new {
+    display: flex; align-items: center; gap: 6px;
+    font: inherit; font-size: 13px; font-weight: 600;
+    color: #2B3135;
+    background: none;
+    border: 1px solid #cdd4e0; border-radius: 8px;
+    padding: 6px 10px 6px 12px;
+    cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
   }
-  .create-caret svg { width: 16px; height: 16px; }
-  .create-new > .l0:hover .create-caret,
-  .create-new > .l0.menu-open .create-caret { opacity: 1; }
-  .create-flyout.open { display: block; }
-  /* fixed, not absolute: .nav-scroll scrolls (so it clips on both axes) and
-     .sidebar is overflow:hidden — an absolute menu would be cut off. Position
-     is set from the row's rect on hover. */
+  .tb-new:hover { background: var(--nav-bg-hover); border-color: #b7c0d0; }
+  .tb-new:active { background: var(--nav-bg-active); }
+  .tb-new svg { width: 14px; height: 14px; }
   .create-flyout {
-    position: fixed;
+    display: none;
+    list-style: none; margin: 0;
+    position: absolute;
+    top: calc(100% + 8px); right: 0;
     min-width: 210px;
-    background: #14264a;
-    border: 1px solid #24345a;
+    background: #ffffff;
+    border: 1px solid #D5DEE3;
     border-radius: 12px;
     padding: 8px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, .4);
+    box-shadow: 0 12px 28px rgba(10, 25, 56, .16);
     z-index: 60;
   }
-  .create-flyout::before {                    /* hover bridge across the gap */
-    content: "";
-    position: absolute;
-    top: 0; left: -16px;
-    width: 16px; height: 100%;
-  }
-  /* the row's own label already says "Create new" when the nav is expanded —
-     the title only earns its place on the icon-only rail */
-  .create-flyout .flyout-title { display: none; }
-  .create-flyout.rail .flyout-title {
-    display: block;
-    padding: 4px 12px 10px;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: .6px; text-transform: uppercase;
-    color: var(--nav-text-dim);
-  }
+  .create-flyout.open { display: block; }
   .create-flyout .nav-item.l1 { padding: 9px 12px; border-radius: 8px; }
   .create-flyout .nav-item.l1 .label { color: var(--nav-text); }
-  .create-flyout .nav-item.l1:hover { background: #203660; }
+  .create-flyout .nav-item.l1:hover { background: var(--nav-bg-hover); }
 
-  /* Homepage / Create new / Favorites read as their own cluster, set off from
-     the pinnable sections by one row's height */
-  .fav-header { margin-bottom: 40px; }
+  /* Adyen Intelligence row: lit while the panel is in full screen */
+  .app.ai-full .nav-item.nav-ai { background: var(--nav-bg-active); }
+
+  /* Homepage / Adyen Intelligence / Favorites read as their own cluster, set
+     off from the pinnable sections by the same 24px as the org block above */
+  .fav-header { margin-bottom: 24px; }
 
   /* Favorited rows in the Favorites section */
-  .fav-item .fav-star { color: #ffffff; display: flex; align-items: center; cursor: pointer; }
+  .fav-item .fav-star { color: var(--nav-text-dim); display: flex; align-items: center; cursor: pointer; }
   .fav-item .fav-star svg { width: 16px; height: 16px; fill: currentColor; stroke: currentColor; stroke-width: 1.6; }
 
   /* Language selector footer */
@@ -989,7 +1030,7 @@
   .fav-flyout .fav-add {
     margin-top: 6px;
     padding-top: 8px;
-    border-top: 1px solid #24345a;
+    border-top: 1px solid #D3D6DC;
   }
   .fav-add-btn {
     display: flex;
@@ -1005,45 +1046,14 @@
     border-radius: 8px;
     cursor: pointer;
   }
-  .fav-add-btn:hover { background: #203660; }
+  .fav-add-btn:hover { background: var(--nav-bg-hover); }
   .fav-add-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
-
-  /* Collapsed tucks the rail away entirely and the canvas takes its place; it
-     slides back out only while the pointer is at the left edge or on the rail. */
-  /* Must clip while tucked away: the collapsed rail sets overflow:visible so
-     its flyouts can escape, which at width 0 spills the whole rail onto the
-     canvas. Only re-open the overflow once it has actually slid out. */
-  .app.collapsed .sidebar { width: 0; overflow: hidden; }
-  .app.collapsed.nav-peek .sidebar { width: 68px; overflow: visible; }
-
-  .nav-peek-zone {
-    display: none;
-    position: fixed;
-    left: 0; top: 0;
-    width: 18px; height: 100vh;
-    z-index: 45;
-    align-items: center;
-  }
-  .app.collapsed .nav-peek-zone { display: flex; }
-  /* while peeking the rail owns this strip, so stop intercepting its hovers */
-  .app.collapsed.nav-peek .nav-peek-zone { pointer-events: none; }
-  /* Light, because it sits in the 8px navy gutter beside the canvas card */
-  .nav-grabber {
-    width: 4px; height: 60px;
-    margin-left: 2px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, .3);
-    transition: background .18s ease, transform .18s ease, opacity .18s ease;
-  }
-  .nav-peek-zone:hover .nav-grabber {
-    background: rgba(255, 255, 255, .6);
-    transform: scaleX(1.4);
-  }
-  .app.collapsed.nav-peek .nav-grabber { opacity: 0; }
 
   .app.collapsed .nav-scroll { overflow: visible; }
 
   .app.collapsed .nav-item.l0 .label { opacity: 0; transition: opacity .12s ease; }
+  /* the rail can't show the active L1, so its section icon carries the state */
+  .app.collapsed .nav-group > .l0.l1-active { background: var(--nav-bg-active); }
   .app.collapsed .glyph-chev { display: none; }
   .app.collapsed .nav-group > .l0:hover .icon { opacity: 1; transform: scale(1.2); }
 
@@ -1056,11 +1066,11 @@
     top: -6px;
     left: calc(100% + 14px);
     min-width: 210px;
-    background: #14264a;
-    border: 1px solid #24345a;
+    background: #ffffff;
+    border: 1px solid #D3D6DC;
     border-radius: 12px;
     padding: 8px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, .4);
+    box-shadow: 0 12px 28px rgba(10, 25, 56, .16);
     z-index: 60;
   }
   .app.collapsed .nav-group:hover > .l1-list { display: block; }
@@ -1072,8 +1082,16 @@
   }
   .app.collapsed .l1-list .nav-item.l1 { padding: 9px 12px; border-radius: 8px; }
   .app.collapsed .l1-list .nav-item.l1 .label { color: var(--nav-text); }
-  .app.collapsed .l1-list .nav-item.l1:hover { background: #203660; }
-  .app.collapsed .l1-list .nav-item.l1.active { background: #24406e; }
+  .app.collapsed .l1-list .nav-item.l1:hover { background: var(--nav-bg-hover); }
+  .app.collapsed .l1-list .nav-item.l1.active { background: var(--nav-bg-active); }
+
+  /* Full screen: the Adyen Intelligence row is the ONLY lit row. Other actives
+     are suppressed rather than cleared — same specificity as the rules above,
+     so these must stay after them — and the current page lights back up the
+     moment full screen exits. */
+  .app.ai-full .nav-item.active,
+  .app.ai-full .l1-list .nav-item.l1.active,
+  .app.ai-full .nav-group > .l0.l1-active { background: none; }
 
   .flyout-title { display: none; }
   .app.collapsed .l1-list .flyout-title {
@@ -1087,7 +1105,9 @@
   }
 
   /* ---------- TOOLTIPS (icon-only controls) ---------- */
-  .topbar { position: relative; z-index: 20; }
+  /* Above the collapsed rail (z-index 40), so the bar's tooltips and the bell
+     dropdown never fall behind the nav. */
+  .topbar { position: relative; z-index: 50; }
   .tip { position: relative; }
   .tip::after, .tip::before {
     position: absolute;
@@ -1096,6 +1116,10 @@
     transition: opacity .12s ease .2s;
     z-index: 200;
   }
+  /* Global bar tips wait 400ms before showing; hiding stays immediate (the
+     delay lives on the hover state only). */
+  .topbar .tip::after, .topbar .tip::before { transition: opacity .12s ease; }
+  .topbar .tip:hover::after, .topbar .tip:hover::before { transition: opacity .12s ease .4s; }
   .tip::after {
     content: attr(data-tip);
     top: calc(100% + 10px);
@@ -1162,22 +1186,17 @@
   .app.collapsed .nav-item.l0[data-tip]:hover::before { opacity: 1; }
 
   /* ---------- MAIN ---------- */
+  /* Flat: no card, no gutters, no radii — the canvas meets the nav and the
+     global bar directly, separated by a hairline on each side. */
   .main {
     flex: 1 1 auto;
     min-width: 0;
+    border-left: 1px solid #D5DEE3;
+    border-right: 1px solid #D5DEE3;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     background: var(--canvas-bg);
-    margin: 8px 8px 8px 0;      /* blue nav wraps the card on top/right/bottom */
-    border-radius: 6px;          /* PC: 6px all corners */
-    transition: margin-left var(--nav-dur) var(--panel-ease);
-  }
-  /* With the rail tucked away there's no nav to sit flush against, so the card
-     takes the same 8px of blue on the left as it has on the other three sides. */
-  .app.collapsed .main { margin-left: 8px; }
-  html.is-mac .main {            /* Mac: 12px, bottom-right 26px to match the window */
-    border-radius: 12px 12px 26px 12px;
   }
 
   .topbar {
@@ -1188,42 +1207,77 @@
     justify-content: space-between;
     gap: 16px;
     padding: 0 24px;
-    border-bottom: 1px solid #eef1f6;
+    background: var(--canvas-bg);      /* global bar: white, full width */
+    border-bottom: 1px solid #D5DEE3;
   }
-  .tb-left { display: flex; align-items: center; }
-  .tb-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: min(440px, 40vw);
-    display: flex;
-  }
+  /* -7px: the 20px glyph sits centred in a 34px hit target, so pulling the
+     wrapper back lines the glyph up with the nav's L0 icons at x=24 */
+  .tb-left { display: flex; align-items: center; margin-left: -7px; }
   .tb-right { display: flex; align-items: center; gap: 16px; }
-  .tb-search {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    max-width: 440px;
-    border: 1px solid #cdd4e0;
-    border-radius: 6px;
-    padding: 8px 12px;
-    color: #4a5878;
-    transition: border-color .12s ease;
+
+  /* ---------- GLOBAL SEARCH MODAL ---------- */
+  .search-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    display: none;
+    align-items: flex-start; justify-content: center;
+    background: rgba(10, 25, 56, .45);
+    -webkit-backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px);
   }
-  .tb-search:focus-within { border-color: #9aa6be; }
-  .tb-search svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .tb-search input {
-    border: 0;
-    outline: 0;
-    background: none;
-    width: 100%;
-    font-family: inherit;
-    font-size: 14px;
-    color: #2B3135;
+  .search-overlay.open { display: flex; animation: smFade .18s ease; }
+  @keyframes smFade { from { opacity: 0; } }
+  .search-modal {
+    width: min(560px, calc(100vw - 48px));
+    /* anchored, not vertically centred: the list swaps between recents and
+       results, and a fixed top edge keeps the bar from jumping */
+    margin-top: 22vh;
+    background: #fff;
+    border: 1px solid #D5DEE3;
+    border-radius: 14px;
+    box-shadow: 0 24px 64px rgba(10, 25, 56, .28);
+    overflow: hidden;
+    animation: smCard .22s var(--panel-ease);
   }
-  .tb-search input::placeholder { color: #727E85; }
+  @keyframes smCard { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+  .sm-bar {
+    display: flex; align-items: center; gap: 11px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #D5DEE3;
+    color: #4a5878; cursor: text;
+  }
+  .sm-bar svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .sm-bar input {
+    flex: 1; border: 0; outline: 0; background: none;
+    font: inherit; font-size: 15px; color: #2B3135;
+  }
+  .sm-bar input::placeholder { color: #727E85; }
+  .sm-body { padding: 10px 8px 12px; max-height: 320px; overflow-y: auto; }
+  .sm-label {
+    font-size: 11px; font-weight: 600; letter-spacing: .8px;
+    text-transform: uppercase; color: var(--nav-text-dim);
+    padding: 4px 10px 8px;
+  }
+  .sm-row {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; text-align: left;
+    background: none; border: 0; border-radius: 8px;
+    padding: 9px 10px;
+    font: inherit; font-size: 13.5px; color: #2B3135;
+    cursor: pointer;
+    transition: background .12s ease;
+  }
+  .sm-row:hover { background: var(--nav-bg-hover); }
+  .sm-row:active { background: var(--nav-bg-active); }
+  .sm-row svg { width: 15px; height: 15px; flex-shrink: 0; color: #727E85; }
+  .sm-row span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sm-tag {
+    font-style: normal;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase;
+    color: #727E85;
+    background: var(--nav-bg);
+    border: 1px solid #D5DEE3; border-radius: 4px;
+    padding: 2px 6px;
+  }
   .topbar .tb-icon {
     color: var(--topbar-icon);
     width: 34px; height: 34px;
@@ -1304,17 +1358,6 @@
   }
   .bell-btn.tertiary:hover { background: #f1f4f9; color: #2B3135; }
   .topbar .tb-left .tb-icon svg { width: 20px; height: 20px; }
-  .topbar .avatar {
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: var(--avatar-bg);
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 600;
-    line-height: 1;
-    padding: 0;
-    cursor: pointer;
-  }
 
   /* Canvas */
   .canvas {
@@ -1322,11 +1365,14 @@
     overflow: auto;
     scrollbar-gutter: stable;
     background: var(--canvas-bg);
-    padding: 40px;
+    /* no top padding: the sticky page headers own it, so their white reaches
+       the very top and titles centre on the 56px band shared with the org
+       logo and the panel header */
+    padding: 0 40px 40px;
   }
 
   /* ---------- SETTINGS PAGE ---------- */
-  .settings { max-width: 1120px; display: none; }
+  .settings { max-width: 1120px; display: none; padding-top: 12px; }  /* canvas has no top pad */
   .settings.show { display: block; }
   .settings-title {
     font-size: 30px;
@@ -1369,6 +1415,8 @@
   .page { display: none; }
   .page.show { display: block; }
 
+  /* Full-bleed over the canvas padding so scrolling widgets vanish cleanly
+     behind it — no peeking through the gutters around the stuck header. */
   .page-header {
     position: sticky;
     top: 0;
@@ -1378,7 +1426,8 @@
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    padding-bottom: 16px;
+    margin: 0 -40px 0;
+    padding: 12px 40px 16px;
   }
   .page-title {
     font-size: 26px;
@@ -1423,10 +1472,15 @@
   .home.show { display: block; }
 
   .home-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: var(--canvas-bg);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 24px;
+    margin: 0 -40px 8px;
+    padding: 12px 40px 16px;   /* 16 + 8 margin = the original 24px gap */
   }
   .home-title {
     font-size: 26px;
@@ -1463,7 +1517,7 @@
 
   /* ---------- NOTIFICATION BANNER ---------- */
   .notice-banner {
-    border: 1px solid #D2D9DD;
+    border: 1px solid #D5DEE3;
     border-radius: 12px;
     padding: 16px 22px;
     background: #fff;
@@ -1524,7 +1578,7 @@
   /* Banner entrance: slides down from under the welcome title after widgets land */
   @keyframes bannerSlideIn {
     from { max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; opacity: 0; border-color: transparent; }
-    to   { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D2D9DD; }
+    to   { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D5DEE3; }
   }
   .notice-banner {
     max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0;
@@ -1535,14 +1589,22 @@
   }
   /* once the case is handled the banner rolls back up the way it came */
   @keyframes bannerSlideOut {
-    from { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D2D9DD; }
+    from { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D5DEE3; }
     to   { max-height: 0; padding-top: 0; padding-bottom: 0; margin-bottom: 0; opacity: 0; border-color: transparent; }
+  }
+  /* Once the entrance has settled, the banner just IS there: a re-shown .home
+     restarts CSS animations, so this pins the resting state instead. The
+     .resolved rule above is more specific, so dismissing still slides out. */
+  .home.settled .notice-banner {
+    animation: none;
+    max-height: 300px; padding-top: 16px; padding-bottom: 16px;
+    margin-bottom: 20px; opacity: 1; border-color: #D5DEE3;
   }
   .home.play .notice-banner.resolved {
     animation: bannerSlideOut .45s var(--panel-ease) forwards;
   }
   @media (prefers-reduced-motion: reduce) {
-    .notice-banner { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D2D9DD; }
+    .notice-banner { max-height: 300px; padding-top: 16px; padding-bottom: 16px; margin-bottom: 20px; opacity: 1; border-color: #D5DEE3; }
     .home.play .notice-banner { animation: none; }
   }
   /* sized to match the Amount / Count segmented buttons */
@@ -1568,6 +1630,47 @@
   .btn-sm svg { width: 14px; height: auto; }
 
   /* ---------- ALL NOTIFICATIONS (AI panel view) ---------- */
+  /* ---------- ARTIFACTS (full-screen rail page) ---------- */
+  .ai-artifacts { display: none; flex-direction: column; }
+  .ai-body.artifacting .ai-artifacts { display: flex; }
+  .ai-body.artifacting .ai-intro { display: none; }
+  .ai-body.artifacting { justify-content: flex-start; }
+  .ai-art-head { display: flex; align-items: center; gap: 10px; }
+  .ai-art-title { flex: 1; margin: 0; font-size: 20px; font-weight: 700; color: #2B3135; }
+  .ai-art-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid #cdd4e0; border-radius: 8px; background: #fff;
+    font: inherit; font-size: 13px; font-weight: 600; color: #2B3135;
+    cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .ai-art-btn:hover { background: var(--nav-bg-hover); border-color: #b7c0d0; }
+  .ai-art-btn svg { width: 13px; height: 13px; }
+  .ai-art-btn.primary { background: #1f5fe0; border-color: #1f5fe0; color: #fff; }
+  .ai-art-btn.primary:hover { background: #194cb3; border-color: #194cb3; }
+  .ai-art-search {
+    margin-top: 12px;
+    display: flex; align-items: center; gap: 9px;
+    padding: 9px 12px;
+    border: 1px solid #cdd4e0; border-radius: 8px; background: #fff;
+    color: #727E85;
+    cursor: text;
+    transition: border-color .12s ease;
+  }
+  .ai-art-search:focus-within { border-color: #3b6bdb; }
+  .ai-art-search svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .ai-art-search input {
+    flex: 1; border: 0; outline: 0; background: none;
+    font: inherit; font-size: 13.5px; color: #2B3135;
+  }
+  .ai-art-search input::placeholder { color: #727E85; }
+
+  /* Rail active states are derived from what the reading column is showing,
+     so they can never drift out of sync with it */
+  .ai-card:has(.ai-body.artifacting) #side-artifacts { background: var(--nav-bg-active); }
+  .ai-card:has(.ai-body.casing) #recent-critical { background: var(--nav-bg-active); }
+
   .ai-notices { display: none; flex-direction: column; gap: 10px; }
   .ai-body.noticing .ai-notices { display: flex; }
   .ai-body.noticing .ai-intro { display: none; }
@@ -1577,7 +1680,7 @@
     text-transform: uppercase; color: #727E85; margin-bottom: 2px;
   }
   .ai-note {
-    border: 1px solid #E2E9ED; border-radius: 10px;
+    border: 1px solid #D5DEE3; border-radius: 12px;
     padding: 12px 13px; background: #fff;
     cursor: pointer;
     transition: border-color .12s ease, background .12s ease;
@@ -1607,7 +1710,7 @@
        never reflow the dashboard even as the charts re-fit their width */
     height: 375px;
     overflow: hidden;
-    border: 1px solid #D2D9DD;
+    border: 1px solid #D5DEE3;
     border-radius: 12px;
     padding: 20px 22px;
     background: #fff;
@@ -1777,11 +1880,25 @@
 
   .sign-in-screen {
     position: fixed; inset: 0; z-index: 200;
-    background: var(--nav-bg);
+    background: var(--sign-in-bg);
     display: flex; align-items: center; justify-content: center;
-    transition: opacity .4s ease;
+    transition: opacity .4s ease, background .55s ease;
   }
   .sign-in-screen.hidden { opacity: 0; pointer-events: none; }
+  /* On sign-in the fields clear first, then the navy washes out to the app's
+     nav colour — so the page is already the right colour when it animates in. */
+  .sign-in-screen.leaving { background: var(--nav-bg); }
+  /* .sign-in-box in the selector so these outrank the .fields-in / .mark-in
+     entrance rules further down, which otherwise pin opacity back to 1 */
+  .sign-in-screen.leaving .sign-in-box .sign-in-field,
+  .sign-in-screen.leaving .sign-in-box .sign-in-btn,
+  .sign-in-screen.leaving .sign-in-box .sign-in-forgot,
+  .sign-in-screen.leaving .sign-in-box .sign-in-link,
+  .sign-in-screen.leaving .sign-in-box .sign-in-mark adyen-ai-mark {
+    opacity: 0;
+    transition: opacity .25s ease;
+    transition-delay: 0s;
+  }
   .sign-in-box {
     width: 340px;
     display: flex; flex-direction: column; align-items: center;
@@ -1935,17 +2052,93 @@
     </div>
   </div>
   <div class="app">
-    <!-- Left-edge hover target that peeks the icon rail back out -->
-    <div class="nav-peek-zone" id="nav-peek-zone" aria-hidden="true">
-      <span class="nav-grabber"></span>
-    </div>
+    <!-- ============ PERSISTENT GLOBAL BAR ============ -->
+    <header class="topbar">
+      <div class="tb-left">
+        <span class="tb-icon tip" data-tip="Collapse menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><polyline class="collapse-caret" points="15.5 9.5 13 12 15.5 14.5"/></svg>
+        </span>
+        <span class="tb-icon tip" id="search-open" data-tip="Search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+        </span>
+      </div>
+      <div class="tb-right">
+        <span class="tb-icon tip" data-tip="Feedback">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 01-1-1v-7a1 1 0 011-1h3zm0 0l4-8a2.5 2.5 0 012.5 2.5V8h5a2 2 0 012 2.3l-1.2 7A2 2 0 0117.3 19H7"/></svg>
+        </span>
+        <span class="tb-icon tip tb-bell" data-tip="Notifications" id="bell-toggle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+          <i class="bell-dot" aria-hidden="true"></i>
+          <div class="bell-drop" id="bell-drop">
+            <div class="bell-item">
+              <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#d1344a" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#fff"/></svg></div>
+              <div class="bell-item-body">
+                <div class="bell-item-title">Subscription failed due to expired card</div>
+                <div class="bell-item-sub">Northwind Retail's $48,000.00 renewal failed</div>
+                <div class="bell-item-actions">
+                  <button class="bell-btn secondary" type="button" id="bell-resolve">
+                    Resolve
+                  </button>
+                  <button class="bell-btn tertiary" type="button">View</button>
+                </div>
+              </div>
+            </div>
+            <div class="bell-item">
+              <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#FFECD9" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#c47a20"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#c47a20"/></svg></div>
+              <div class="bell-item-body">
+                <div class="bell-item-title">Unusual chargeback spike detected</div>
+                <div class="bell-item-sub">14 chargebacks in the last 24 hours</div>
+                <div class="bell-item-actions">
+                  <button class="bell-btn secondary" type="button">
+                    Resolve
+                  </button>
+                  <button class="bell-btn tertiary" type="button">View</button>
+                </div>
+              </div>
+            </div>
+            <div class="bell-item">
+              <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#FFECD9" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#c47a20"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#c47a20"/></svg></div>
+              <div class="bell-item-body">
+                <div class="bell-item-title">API latency above threshold</div>
+                <div class="bell-item-sub">Average response time exceeded 500ms</div>
+                <div class="bell-item-actions">
+                  <button class="bell-btn secondary" type="button">
+                    Resolve
+                  </button>
+                  <button class="bell-btn tertiary" type="button">View</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </span>
+        <span class="tb-new-wrap">
+          <button class="tb-new" id="tb-new" type="button">
+            <span>New</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <ul class="create-flyout" id="create-menu">
+            <li class="nav-item l1"><span class="label">Payment link</span></li>
+            <li class="nav-item l1"><span class="label">Invoice</span></li>
+            <li class="nav-item l1"><span class="label">Refund</span></li>
+            <li class="nav-item l1"><span class="label">Payout</span></li>
+            <li class="nav-item l1"><span class="label">User</span></li>
+            <li class="nav-item l1"><span class="label">API credential</span></li>
+          </ul>
+        </span>
+        <span class="tb-icon tip ai-trigger" data-tip="Show Adyen Intelligence or press ⌘ + \">
+          <!-- same panel glyph as tb-left, mirrored: the panel it opens is on the right -->
+          <svg viewBox="0 0 24 24" style="transform: scaleX(-1)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><polyline class="ai-caret" points="15.5 9.5 13 12 15.5 14.5"/></svg>
+        </span>
+      </div>
+    </header>
 
+    <div class="app-body">
     <!-- ============ SIDEBAR ============ -->
     <aside class="sidebar">
       <div class="org">
         <div class="org-logo">
           <!-- Drafting compass mark -->
-          <svg viewBox="0 0 24 24" fill="#0a1938" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg">
             <rect x="10.6" y="1.8" width="2.8" height="1.9" rx="0.7"/>
             <rect x="10.1" y="3.7" width="3.8" height="3.5" rx="1.2"/>
             <rect x="9.1" y="6.8" width="5.8" height="3.1" rx="1"/>
@@ -1964,27 +2157,17 @@
       <div class="nav-scroll">
         <nav>
           <ul>
-            <li class="nav-item l0" data-tip="Homepage">
+            <li class="nav-item l0" data-tip="Home">
               <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
-              <span class="label">Homepage</span>
+              <span class="label">Home</span>
             </li>
 
-            <!-- Quick-create: never pinnable, opens its menu on hover -->
-            <li class="nav-group create-new">
-              <div class="nav-item l0">
-                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span class="label">Create new</span>
-                <span class="create-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></span>
-              </div>
-              <ul class="l1-list create-flyout">
-                <li class="flyout-title">Create new</li>
-                <li class="nav-item l1"><span class="label">Payment link</span></li>
-                <li class="nav-item l1"><span class="label">Invoice</span></li>
-                <li class="nav-item l1"><span class="label">Refund</span></li>
-                <li class="nav-item l1"><span class="label">Payout</span></li>
-                <li class="nav-item l1"><span class="label">User</span></li>
-                <li class="nav-item l1"><span class="label">API credential</span></li>
-              </ul>
+            <!-- Opens Adyen Intelligence in full screen; lit while it's there -->
+            <li class="nav-item l0 nav-ai" data-tip="Orchestrator">
+              <!-- four-petal prop mark, outlined; petals spread 3 units out from
+                   centre for breathing room, viewBox re-fit to the new extents -->
+              <svg class="icon" viewBox="10 10 72 60" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-3 -3)"><path d="M31 16H16V25C16 31.6274 21.3726 37 28 37H43V28C43 21.3726 37.6274 16 31 16Z"/></g><g transform="translate(3 -3)"><path d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z"/></g><g transform="translate(-3 3)"><path d="M28 43H43V52C43 58.6274 37.6274 64 31 64H16V55C16 48.3726 21.3726 43 28 43Z"/></g><g transform="translate(3 3)"><path d="M64 43H49V52C49 58.6274 54.3726 64 61 64H76V55C76 48.3726 70.6274 43 64 43Z"/></g></svg>
+              <span class="label">Orchestrator</span>
             </li>
 
             <!-- Favorites is a row like any other; the favorited pages (or the
@@ -2107,9 +2290,9 @@
             <li class="nav-item l1" data-lang="Español"><span class="label">Español</span></li>
           </ul>
         </div>
-        <div class="nav-item l0 settings-item" data-tip="Settings">
+        <div class="nav-item l0 settings-item" data-tip="Account & settings">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-          <span class="label">Settings</span>
+          <span class="label">Account & settings</span>
         </div>
       </div>
     </aside>
@@ -2119,75 +2302,6 @@
 
     <!-- ============ MAIN ============ -->
     <div class="main">
-      <header class="topbar">
-        <div class="tb-left">
-          <span class="tb-icon tip" data-tip="Collapse menu">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="9" y1="4" x2="9" y2="20"/><polyline class="collapse-caret" points="15.5 9.5 13 12 15.5 14.5"/></svg>
-          </span>
-        </div>
-        <div class="tb-center">
-          <div class="tb-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
-            <input type="text" placeholder="Search or ask a question" aria-label="Search" />
-          </div>
-        </div>
-        <div class="tb-right">
-          <span class="tb-icon tip" data-tip="Feedback">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 01-1-1v-7a1 1 0 011-1h3zm0 0l4-8a2.5 2.5 0 012.5 2.5V8h5a2 2 0 012 2.3l-1.2 7A2 2 0 0117.3 19H7"/></svg>
-          </span>
-          <span class="tb-icon tip tb-bell" data-tip="Notifications" id="bell-toggle">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
-            <i class="bell-dot" aria-hidden="true"></i>
-            <div class="bell-drop" id="bell-drop">
-              <div class="bell-item">
-                <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#d1344a" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#fff"/></svg></div>
-                <div class="bell-item-body">
-                  <div class="bell-item-title">Subscription failed due to expired card</div>
-                  <div class="bell-item-sub">Northwind Retail's $48,000.00 renewal failed</div>
-                  <div class="bell-item-actions">
-                    <button class="bell-btn secondary" type="button" id="bell-resolve">
-                      Resolve
-                    </button>
-                    <button class="bell-btn tertiary" type="button">View</button>
-                  </div>
-                </div>
-              </div>
-              <div class="bell-item">
-                <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#FFECD9" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#c47a20"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#c47a20"/></svg></div>
-                <div class="bell-item-body">
-                  <div class="bell-item-title">Unusual chargeback spike detected</div>
-                  <div class="bell-item-sub">14 chargebacks in the last 24 hours</div>
-                  <div class="bell-item-actions">
-                    <button class="bell-btn secondary" type="button">
-                      Resolve
-                    </button>
-                    <button class="bell-btn tertiary" type="button">View</button>
-                  </div>
-                </div>
-              </div>
-              <div class="bell-item">
-                <div class="bell-item-icon"><svg viewBox="0 0 24 24" fill="#FFECD9" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#c47a20"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#c47a20"/></svg></div>
-                <div class="bell-item-body">
-                  <div class="bell-item-title">API latency above threshold</div>
-                  <div class="bell-item-sub">Average response time exceeded 500ms</div>
-                  <div class="bell-item-actions">
-                    <button class="bell-btn secondary" type="button">
-                      Resolve
-                    </button>
-                    <button class="bell-btn tertiary" type="button">View</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </span>
-          <span class="avatar tip" data-tip="Account">M</span>
-          <span class="tb-icon tip ai-trigger" data-tip="Ask Adyen Intelligence">
-            <svg viewBox="0 0 101 66" style="width: auto; height: 16px;" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M53 0.5H0.5V16.5H37.5V48.5H26.5V27H0.5V53.5C0.5 60.1274 5.87259 65.5 12.5 65.5H65V12.5C65 5.87258 59.6274 0.5 53 0.5Z" fill="#0a1938"/><path d="M85 0.5H100V9.5C100 16.1274 94.6274 21.5 88 21.5H73V12.5C73 5.87258 78.3726 0.5 85 0.5Z" fill="#0a1938"/><path d="M88 27.5H73V65.5H100V39.5C100 32.8726 94.6274 27.5 88 27.5Z" fill="#0a1938"/></svg>
-            <i class="ai-bar" aria-hidden="true"></i>
-          </span>
-        </div>
-      </header>
-
       <main class="canvas">
         <!-- Homepage dashboard -->
         <div class="home">
@@ -2521,13 +2635,12 @@
         <!-- agent rail: only revealed in full screen -->
         <aside class="ai-side">
           <div class="ai-side-inner">
-            <button class="ai-side-item ai-side-new" type="button">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              <span>New</span>
-            </button>
-
             <div class="ai-side-group">
-              <button class="ai-side-item" type="button">
+              <button class="ai-side-item" id="side-new" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>New</span>
+              </button>
+              <button class="ai-side-item" id="side-artifacts" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span>Artifacts</span>
               </button>
@@ -2540,7 +2653,7 @@
                 <span>Automations</span>
               </button>
               <button class="ai-side-item" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="5.2" cy="12" rx="2.2" ry="7.5"/><ellipse cx="18.8" cy="12" rx="2.2" ry="7.5"/><path d="M5.2 4.5h13.6"/><path d="M5.2 19.5h13.6"/><line x1="9.5" y1="10" x2="14.5" y2="10"/><line x1="9.5" y1="14" x2="14.5" y2="14"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
                 <span>Skills</span>
               </button>
             </div>
@@ -2554,6 +2667,7 @@
 
             <div class="ai-side-label">Recents</div>
             <div class="ai-side-group" data-section="recents">
+              <div class="ai-side-item sub" id="recent-critical"><span>Critical notification · 8/12/26</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Summarize my payment performance</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Ways to optimize payment methods</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Chargebacks vs last month</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
@@ -2595,13 +2709,10 @@
             <!-- full screen: minimize (two diagonal arrows toward the centre) -->
             <svg class="ico-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="20" y2="4"/><line x1="10" y1="14" x2="4" y2="20"/></svg>
           </button>
-          <span class="ai-title">Adyen Intelligence</span>
+          <span class="ai-title">Orchestrator</span>
           <div class="ai-head-actions">
             <button class="ai-icon-btn ai-newchat" type="button" title="New chat">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-            <button class="ai-icon-btn ai-close" type="button" title="Close">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
             </button>
           </div>
         </header>
@@ -2612,7 +2723,7 @@
               <div class="ai-hero-mark">
                 <adyen-ai-mark class="ai-anim" size="40px" duration="1s" color="#1f5fe0"></adyen-ai-mark>
               </div>
-              <div class="ai-hero-text">Meet Adyen Intelligence, your AI assistant</div>
+              <div class="ai-hero-text">Orchestrate business with Adyen Intelligence</div>
             </div>
 
             <div class="ai-suggestions">
@@ -2666,12 +2777,28 @@
             </div>
           </div>
 
+          <!-- artifacts library, shown from the full-screen rail -->
+          <div class="ai-artifacts">
+            <div class="ai-art-head">
+              <h2 class="ai-art-title">Artifacts</h2>
+              <button class="ai-art-btn" type="button">
+                Filter by
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <button class="ai-art-btn primary" type="button">New artifact</button>
+            </div>
+            <label class="ai-art-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.3" y2="16.3"/></svg>
+              <input type="text" placeholder="Search artifacts" aria-label="Search artifacts" />
+            </label>
+          </div>
+
           <!-- pre-seeded case: opens already knowing what happened -->
           <div class="ai-case">
             <div class="ai-step">
               <div class="ai-step-label">What happened</div>
               <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal failed because their card expired.</div>
-              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before.</div>
+              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before. An automatic email was sent to their billing contact 10 hours ago.</div>
             </div>
 
             <div class="ai-step">
@@ -2684,7 +2811,6 @@
                 <div class="ai-ev-kv"><span>Attempted</span><span class="v">Yesterday, 02:14 CET</span></div>
                 <div class="ai-ev-kv"><span>Next retry</span><span class="v">In 2 days · will fail again</span></div>
               </div>
-              <div class="ai-step-body">An automatic email was sent to their billing contact 10 hours ago.</div>
             </div>
 
             <div class="ai-step" id="ai-step-options">
@@ -2790,22 +2916,58 @@
         <div class="ai-footer">
           <div class="ai-input-clip"><div class="ai-footer-inner">
           <form class="ai-input" onsubmit="return false">
-            <button class="ai-input-btn" type="button" title="Add context">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </button>
-            <input type="text" placeholder="Ask anything" aria-label="Ask anything" />
-            <button class="ai-input-btn" type="button" title="Voice input">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0012 0"/><line x1="12" y1="18" x2="12" y2="21"/></svg>
+            <input type="text" placeholder="Type / for commands" aria-label="Type / for commands" />
+            <button class="ai-send-btn" id="ai-send-btn" type="button" title="Stop">
+              <svg class="ico-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
+              <svg class="ico-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
             </button>
           </form>
+          <div class="ai-composer-meta">
+            <div class="acm-left">
+              <button class="ai-input-btn" type="button" title="Add context">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+              <button class="ai-input-btn" type="button" title="Voice input">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0012 0"/><line x1="12" y1="18" x2="12" y2="21"/></svg>
+              </button>
+            </div>
+            <div class="acm-right">
+              <button class="ai-model-btn" type="button" title="Model">
+                adyen-i2
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <!-- token counter: grey track, blue used arc -->
+              <span class="ai-token-wheel tip" data-tip="6.4k of 20k tokens">
+                <svg viewBox="0 0 20 20" aria-label="Token usage">
+                  <circle cx="10" cy="10" r="7" fill="none" stroke="#D5DEE3" stroke-width="3"/>
+                  <circle class="atw-used" cx="10" cy="10" r="7" fill="none" stroke="#1f5fe0" stroke-width="3"
+                          stroke-dasharray="14.1 43.98" stroke-linecap="round" transform="rotate(-90 10 10)"/>
+                </svg>
+              </span>
+            </div>
+          </div>
           </div></div>
-          <div class="ai-disclaimer">Adyen Intelligence can make mistakes. Adyen protects privacy and adheres to responsible AI principles.</div>
         </div>
         </div><!-- /.ai-content -->
       </div>
     </aside>
 
     </div><!-- /.workarea -->
+    </div><!-- /.app-body -->
+  </div>
+
+  <!-- ============ GLOBAL SEARCH MODAL ============ -->
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-modal" role="dialog" aria-label="Search">
+      <label class="sm-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+        <input type="text" id="search-modal-input" placeholder="Search or ask a question" autocomplete="off" aria-label="Search" />
+      </label>
+      <div class="sm-body">
+        <div class="sm-label" id="sm-section-label">Recent searches</div>
+        <div class="sm-list" id="sm-list"></div>
+      </div>
+    </div>
   </div>
 
   <script src="ai-mark.js"></script>
@@ -2846,7 +3008,6 @@
       // Populate each group's L1 list from the map
       document.querySelectorAll('.nav-group').forEach(function (group) {
         if (group.classList.contains('lang-group')) return;   // preset language list
-        if (group.classList.contains('create-new')) return;   // hand-authored menu
         var l0label = group.querySelector('.l0 .label');
         if (!l0label) return;                 // skip the favorites header (no L0)
         var key = l0label.textContent.trim();
@@ -2862,7 +3023,7 @@
 
       // --- Expand / collapse L0 groups ---
       var chevGlyph = '<svg class="glyph-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
-      document.querySelectorAll('.nav-group:not(.create-new) > .l0').forEach(function (row) {
+      document.querySelectorAll('.nav-group > .l0').forEach(function (row) {
         // Move the section icon into a glyph slot and overlay a disclosure chevron
         var icon = row.querySelector('.icon');
         var glyph = document.createElement('span');
@@ -2880,45 +3041,16 @@
         });
       });
 
-      // --- Create new: hover menu ---
-      // The sidebar keeps a transform after the entrance, which makes it the
-      // containing block for position:fixed AND clips to its overflow — so the
-      // menu is re-homed on <body> and shown from script rather than :hover.
-      var createNew = document.querySelector('.create-new');
-      if (createNew) {
-        var createRow = createNew.querySelector('.l0');
-        var createMenu = createNew.querySelector('.create-flyout');
-        var createHide;
-        document.body.appendChild(createMenu);
-
-        function showCreateMenu() {
-          clearTimeout(createHide);
-          var r = createRow.getBoundingClientRect();
-          createMenu.style.top = (r.top - 6) + 'px';
-          createMenu.style.left = (r.right + 14) + 'px';
-          // on <body>, so `.app.collapsed` isn't an ancestor — carry it over
-          createMenu.classList.toggle('rail',
-            document.querySelector('.app').classList.contains('collapsed'));
-          createMenu.classList.add('open');
-          createRow.classList.add('menu-open');
-        }
-        function hideCreateMenu() {
-          createHide = setTimeout(function () {
-            createMenu.classList.remove('open');
-            createRow.classList.remove('menu-open');
-          }, 120);
-        }
-        createNew.addEventListener('mouseenter', showCreateMenu);
-        createNew.addEventListener('mouseleave', hideCreateMenu);
-        // the menu is on <body>, so hovering it counts as leaving the sidebar —
-        // hold the rail's peek open while the pointer is inside it
-        createMenu.addEventListener('mouseenter', function () {
-          clearTimeout(createHide);
-          openPeek();
+      // --- "New" in the global bar: click toggles its create menu ---
+      var tbNew = document.getElementById('tb-new');
+      var createMenu = document.getElementById('create-menu');
+      if (tbNew && createMenu) {
+        tbNew.addEventListener('click', function (e) {
+          e.stopPropagation();
+          createMenu.classList.toggle('open');
         });
-        createMenu.addEventListener('mouseleave', function () {
-          hideCreateMenu();
-          closePeek();
+        document.addEventListener('click', function (e) {
+          if (!e.target.closest('.tb-new-wrap')) createMenu.classList.remove('open');
         });
       }
 
@@ -2935,7 +3067,6 @@
         return li.classList.contains('nav-group')
             && !li.classList.contains('fav-header')
             && !li.classList.contains('lang-group')
-            && !li.classList.contains('create-new')
             && li !== showAll;
       });
 
@@ -3010,32 +3141,8 @@
       if (collapseBtn) {
         collapseBtn.addEventListener('click', function () {
           var collapsed = app.classList.toggle('collapsed');
-          if (!collapsed) app.classList.remove('nav-peek');
           collapseBtn.setAttribute('data-tip', collapsed ? 'Expand menu' : 'Collapse menu');
         });
-      }
-
-      // --- Peek the collapsed rail from the left edge ---
-      var peekZone = document.getElementById('nav-peek-zone');
-      var sidebarEl = document.querySelector('.sidebar');
-      var peekTimer = null;
-
-      function openPeek() {
-        clearTimeout(peekTimer);
-        if (app.classList.contains('collapsed')) app.classList.add('nav-peek');
-      }
-      // A short delay bridges the gap between leaving one element and entering
-      // the next, so crossing from the strip onto the rail doesn't flicker.
-      function closePeek() {
-        clearTimeout(peekTimer);
-        peekTimer = setTimeout(function () { app.classList.remove('nav-peek'); }, 180);
-      }
-
-      if (peekZone) {
-        peekZone.addEventListener('mouseenter', openPeek);
-        peekZone.addEventListener('mouseleave', closePeek);
-        sidebarEl.addEventListener('mouseenter', openPeek);
-        sidebarEl.addEventListener('mouseleave', closePeek);
       }
 
       // --- Adyen Intelligence panel: open from the AI icon, close from panel controls ---
@@ -3080,6 +3187,15 @@
             app.classList.contains('collapsed') ? 'Expand menu' : 'Collapse menu');
         }
       }
+      var aiTrigger = document.querySelector('.ai-trigger');
+      // true only while the panel exists solely for the full-screen AI page
+      var aiOpenedForFull = false;
+      function syncAiTip() {
+        if (!aiTrigger) return;
+        aiTrigger.setAttribute('data-tip',
+          (app.classList.contains('ai-open') ? 'Hide' : 'Show') +
+          ' Adyen Intelligence or press ⌘ + \\');
+      }
       function openAiPanel() {
         if (!app.classList.contains('collapsed')) {
           autoCollapsed = true;
@@ -3087,6 +3203,7 @@
           syncCollapseTip();
         }
         app.classList.add('ai-open');
+        syncAiTip();
       }
       function closeAiPanel() {
         // From full screen the panel shrinks left-to-right at its full width
@@ -3102,31 +3219,39 @@
           autoCollapsed = false;
           syncCollapseTip();
         }
+        aiOpenedForFull = false;
+        syncAiTip();
       }
 
-      var aiTrigger = document.querySelector('.ai-trigger');
-      if (aiTrigger) {
-        aiTrigger.addEventListener('click', function () {
-          if (app.classList.contains('ai-open')) {
-            closeAiPanel();
-          } else {
-            openAiPanel();
-            playAiIntro(500);   // wait out the panel slide before the mark rises
-          }
-        });
+      function toggleAiPanel() {
+        if (app.classList.contains('ai-open')) {
+          closeAiPanel();
+        } else {
+          openAiPanel();
+          playAiIntro(500);   // wait out the panel slide before the mark rises
+        }
       }
+      if (aiTrigger) aiTrigger.addEventListener('click', toggleAiPanel);
+      syncAiTip();
+
+      // ⌘+\ (or Ctrl+\ off-Mac) toggles the panel from anywhere
+      document.addEventListener('keydown', function (e) {
+        if (e.key === '\\' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          toggleAiPanel();
+        }
+      });
       // click the hero mark to replay the prop-to-icon animation
       var aiHeroMark = document.querySelector('.ai-hero-mark');
       if (aiHeroMark) aiHeroMark.addEventListener('click', playAiIntro);
-      document.querySelectorAll('.ai-close').forEach(function (btn) {
-        btn.addEventListener('click', closeAiPanel);
-      });
       var aiExpand = document.querySelector('.ai-expand');
       if (aiExpand) {
         aiExpand.addEventListener('click', function () {
           var goingFull = !app.classList.contains('ai-full');
           if (!goingFull) {
-            // leaving full screen: rail drops out immediately, panel covers it
+            // leaving full screen: rail drops out immediately, panel covers it.
+            // Minimizing is an explicit choice of companion view — keep it.
+            aiOpenedForFull = false;
             app.classList.add('ai-leaving-full');
             setTimeout(function () { app.classList.remove('ai-leaving-full'); }, 520);
           }
@@ -3139,6 +3264,81 @@
             app.classList.add('collapsed');
             syncCollapseTip();
           }
+        });
+      }
+
+      // --- Global search modal ---
+      var searchOpenBtn = document.getElementById('search-open');
+      var searchOverlay = document.getElementById('search-overlay');
+      var searchInput = document.getElementById('search-modal-input');
+      var smList = document.getElementById('sm-list');
+      var smLabel = document.getElementById('sm-section-label');
+
+      var RECENT_SEARCHES = [
+        'expired cards this month',
+        'Northwind Retail',
+        'auth rate by issuer',
+        'refund 8831-4420',
+        'payout schedule'
+      ];
+      var SEARCH_DATA = [
+        { t: 'Transaction', label: 'Northwind Retail · $48,000.00 · Refused' },
+        { t: 'Transaction', label: 'Blue Harbor Coffee · $1,240.50 · Settled' },
+        { t: 'Transaction', label: 'Acme Fitness · $312.00 · Refunded' },
+        { t: 'Customer', label: 'Northwind Retail' },
+        { t: 'Customer', label: 'Blue Harbor Coffee' },
+        { t: 'Customer', label: 'Marigold Hotels' },
+        { t: 'Report', label: 'Authorization rate — last 7 days' },
+        { t: 'Report', label: 'Refunds — July' },
+        { t: 'Report', label: 'Chargebacks vs last month' },
+        { t: 'Page', label: 'Payment methods' },
+        { t: 'Page', label: 'Payout accounts' },
+        { t: 'Page', label: 'Risk profiles' }
+      ];
+      var SM_ICONS = {
+        clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>',
+        Transaction: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><line x1="2.5" y1="10" x2="21.5" y2="10"/></svg>',
+        Customer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>',
+        Report: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="18" y1="20" x2="18" y2="4"/></svg>',
+        Page: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      };
+
+      function renderSearch() {
+        var q = searchInput.value.trim().toLowerCase();
+        if (!q) {
+          smLabel.textContent = 'Recent searches';
+          smList.innerHTML = RECENT_SEARCHES.map(function (s) {
+            return '<button class="sm-row" type="button">' + SM_ICONS.clock +
+                   '<span>' + esc(s) + '</span></button>';
+          }).join('');
+          return;
+        }
+        var hits = SEARCH_DATA.filter(function (d) {
+          return d.label.toLowerCase().indexOf(q) !== -1;
+        }).slice(0, 6);
+        smLabel.textContent = hits.length ? 'Results' : 'No results';
+        smList.innerHTML = hits.map(function (d) {
+          return '<button class="sm-row" type="button">' + SM_ICONS[d.t] +
+                 '<span>' + esc(d.label) + '</span><i class="sm-tag">' + d.t + '</i></button>';
+        }).join('');
+      }
+
+      function openSearch() {
+        searchInput.value = '';
+        renderSearch();
+        searchOverlay.classList.add('open');
+        setTimeout(function () { searchInput.focus(); }, 30);
+      }
+      function closeSearch() { searchOverlay.classList.remove('open'); }
+
+      if (searchOpenBtn && searchOverlay) {
+        searchOpenBtn.addEventListener('click', openSearch);
+        searchInput.addEventListener('input', renderSearch);
+        searchOverlay.addEventListener('click', function (e) {
+          if (e.target === searchOverlay) closeSearch();   // scrim, not the card
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && searchOverlay.classList.contains('open')) closeSearch();
         });
       }
 
@@ -3217,7 +3417,7 @@
       function openAiCase() {
         openAiPanel();
         aiChat.innerHTML = '';
-        aiBody.classList.remove('chatting', 'noticing');
+        aiBody.classList.remove('chatting', 'noticing', 'artifacting');
         aiBody.classList.add('casing');
         aiFollowup.classList.remove('visible');
         aiFollowupCards.classList.remove('cards-in');
@@ -3333,8 +3533,31 @@
         noticeSeeAll.addEventListener('click', function () {
           openAiPanel();
           aiChat.innerHTML = '';
-          aiBody.classList.remove('chatting', 'casing');
+          aiBody.classList.remove('chatting', 'casing', 'artifacting');
           aiBody.classList.add('noticing');
+        });
+      }
+
+      // --- Full-screen rail: Artifacts page, new chat, recent shortcuts ---
+      var sideArtifacts = document.getElementById('side-artifacts');
+      var sideNew = document.getElementById('side-new');
+      var recentCritical = document.getElementById('recent-critical');
+      if (sideArtifacts) {
+        sideArtifacts.addEventListener('click', function () {
+          aiBody.classList.remove('chatting', 'casing', 'noticing');
+          aiBody.classList.add('artifacting');
+        });
+      }
+      if (sideNew) {
+        sideNew.addEventListener('click', function () {
+          aiChat.innerHTML = '';
+          aiBody.classList.remove('chatting', 'casing', 'noticing', 'artifacting');
+        });
+      }
+      if (recentCritical) {
+        recentCritical.addEventListener('click', function (e) {
+          if (e.target.closest('.ai-side-more')) return;   // overflow, not open
+          openAiCase();
         });
       }
 
@@ -3411,7 +3634,7 @@
         b.querySelector('.ai-msg-text').textContent = response;
         aiChat.appendChild(u);
         aiChat.appendChild(b);
-        aiBody.classList.remove('casing', 'noticing');
+        aiBody.classList.remove('casing', 'noticing', 'artifacting');
         aiBody.classList.add('chatting');
         aiBody.scrollTop = aiBody.scrollHeight;
       }
@@ -3422,15 +3645,29 @@
         });
       });
 
+      var aiForm = document.querySelector('.ai-input');
+      var aiSendBtn = document.getElementById('ai-send-btn');
+      function syncSendBtn() {
+        var typing = !!(aiField && aiField.value.trim());
+        if (aiForm) aiForm.classList.toggle('typing', typing);
+        if (aiSendBtn) aiSendBtn.setAttribute('title', typing ? 'Send' : 'Stop');
+      }
+      function submitAiField() {
+        if (!aiField.value.trim()) return;
+        aiSend(aiField.value.trim(), genericReply);
+        aiField.value = '';
+        syncSendBtn();
+      }
       if (aiField) {
+        aiField.addEventListener('input', syncSendBtn);
         aiField.addEventListener('keydown', function (e) {
           if (e.key === 'Enter' && aiField.value.trim()) {
             e.preventDefault();
-            aiSend(aiField.value.trim(), genericReply);
-            aiField.value = '';
+            submitAiField();
           }
         });
       }
+      if (aiSendBtn) aiSendBtn.addEventListener('click', submitAiField);
 
       var aiNewChat = document.querySelector('.ai-newchat');
       if (aiNewChat) {
@@ -3499,10 +3736,19 @@
           a.classList.remove('active');
         });
         el.classList.add('active');
+        // the collapsed rail shows the active page on its section icon
+        document.querySelectorAll('.nav-group > .l0.l1-active').forEach(function (r) {
+          r.classList.remove('l1-active');
+        });
+        var group = el.closest('.nav-group');
+        var l0 = group && group.querySelector(':scope > .l0');
+        if (l0) l0.classList.add('l1-active');
       }
 
       var homeSettleTimer = null;
+      var homePlayed = false;      // entrance runs once, after sign-in only
       function playHome() {
+        homePlayed = true;
         homeView.classList.remove('play', 'settled');
         app.classList.remove('bell-active');
         void homeView.offsetWidth;
@@ -3520,36 +3766,70 @@
           v.classList.toggle('show', v === view);
         });
         canvas.scrollTop = 0;
-        if (view === homeView) playHome();
+        // the dashboard entrance is a one-time, post-sign-in moment; navigating
+        // back later shows everything already loaded
+        if (view === homeView && !homePlayed) playHome();
       }
 
       // --- L0 routing: only flat L0s (no L1s) navigate & activate.
       //     Group L0s just expand/collapse (handled above); they never go active. ---
       function exitAiFull() {
-        if (app.classList.contains('ai-full')) {
-          app.classList.add('ai-leaving-full');
-          setTimeout(function () { app.classList.remove('ai-leaving-full'); }, 520);
-          app.classList.remove('ai-full');
-          if (aiExpand) aiExpand.setAttribute('title', 'Expand to full screen');
+        if (!app.classList.contains('ai-full')) return;
+        // opened only for the AI page: navigation away closes it outright —
+        // companion view is for panels the user opened explicitly
+        if (aiOpenedForFull) {
+          aiOpenedForFull = false;
+          closeAiPanel();          // owns the full-to-closed animation
+          return;
         }
+        app.classList.add('ai-leaving-full');
+        setTimeout(function () { app.classList.remove('ai-leaving-full'); }, 520);
+        app.classList.remove('ai-full');
+        if (aiExpand) aiExpand.setAttribute('title', 'Expand to full screen');
       }
 
       document.querySelectorAll('.nav-item.l0').forEach(function (row) {
         if (row.closest('.nav-group')) return;   // group L0s only expand
+        if (row.classList.contains('nav-ai')) return;   // opens the panel, not a page
         row.addEventListener('click', function () {
           exitAiFull();
           var label = row.querySelector('.label').textContent.trim();
           currentPageTitle = null;
           setActive(row);
-          showView(label === 'Settings' ? settingsView : label === 'Homepage' ? homeView : null);
+          showView(row.classList.contains('settings-item') ? settingsView
+                 : label === 'Home' ? homeView : null);
           updateFavStar();
         });
       });
 
+      // Adyen Intelligence row: straight to the panel in full screen. Active
+      // state comes from CSS on .app.ai-full, so it clears itself on exit.
+      // If the panel wasn't already open, it exists only for this page — when
+      // navigation leaves, it closes fully instead of dropping to companion.
+      var navAiRow = document.querySelector('.nav-item.nav-ai');
+      if (navAiRow) {
+        navAiRow.addEventListener('click', function () {
+          if (!app.classList.contains('ai-open')) {
+            openAiPanel();
+            playAiIntro(500);
+            aiOpenedForFull = true;
+          }
+          if (!app.classList.contains('ai-full')) {
+            app.classList.add('ai-full');
+            if (aiExpand) aiExpand.setAttribute('title', 'Exit full screen');
+            if (!app.classList.contains('collapsed')) {
+              autoCollapsed = true;
+              app.classList.add('collapsed');
+              syncCollapseTip();
+            }
+          }
+        });
+      }
+
       // --- L1 rows: open a page; star still favorites without navigating ---
       document.querySelectorAll('.nav-item.l1').forEach(function (item) {
         if (item.closest('.lang-group')) return;   // language items handled separately
-        if (item.closest('.create-new')) return;   // menu placeholders, not pages
+        if (item.closest('.create-flyout')) return;   // menu placeholders, not pages
         item.addEventListener('click', function () {
           exitAiFull();
           pageTitle.textContent = item.dataset.fav;
@@ -3634,7 +3914,7 @@
       });
 
       // --- Default landing view: Homepage (without triggering playHome yet) ---
-      var homeRow = document.querySelector('li.nav-item.l0[data-tip="Homepage"]');
+      var homeRow = document.querySelector('li.nav-item.l0[data-tip="Home"]');
       if (homeRow) setActive(homeRow);
       [settingsView, pageView, homeView].forEach(function (v) {
         v.classList.toggle('show', v === homeView);
@@ -3700,6 +3980,13 @@
       }
 
       signInBtn.addEventListener('click', function () {
+        // fields clear (250ms), then the navy washes out to the nav colour
+        // (550ms); the app only starts moving once that has landed
+        signInScreen.classList.add('leaving');
+        setTimeout(startApp, 620);
+      });
+
+      function startApp() {
         signInScreen.classList.add('hidden');
         app.classList.add('entered');
 
@@ -3725,7 +4012,7 @@
           app.classList.add('entrance-done');
           playHome();
         }, settled);
-      });
+      }
     })();
   </script>
 </body>
