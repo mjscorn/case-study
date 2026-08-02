@@ -14,6 +14,7 @@
     --nav-text-dim: #6E7681;    /* section labels / muted */
     --nav-divider: #D3D6DC;
     --sign-in-bg: #0a1938;      /* sign-in stays navy, then fades to --nav-bg */
+    --btn-blue: #0a1938;        /* one color for every button: text, 1px border, icons */
     --green: #0abf53;           /* Adyen green logo */
     --canvas-bg: #ffffff;
     --topbar-icon: #4a5878;
@@ -198,10 +199,26 @@
   .ai-menu-sep { height: 1px; background: #eef1f6; margin: 5px 4px; }
   .ai-side-group { display: flex; flex-direction: column; gap: 1px; }
   .ai-side-label {
-    font-size: 11px; font-weight: 600; letter-spacing: .8px;
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; background: none; border: 0; cursor: pointer;
+    font: inherit; font-size: 11px; font-weight: 600; letter-spacing: .8px;
     text-transform: uppercase; color: var(--nav-text-dim);
-    padding: 6px 12px; margin-top: 18px;
+    padding: 6px 12px; margin-top: 18px; border-radius: 7px;
   }
+  .ai-side-label:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-side-label svg {
+    width: 14px; height: 14px; flex-shrink: 0;
+    transition: transform .25s ease;
+  }
+  .ai-side-label.closed svg { transform: rotate(-90deg); }
+  /* 1fr→0fr grid collapse: animates to the section's natural height, no
+     max-height guessing — the single grid child just needs min-height: 0 */
+  .ai-side-collapse {
+    display: grid; grid-template-rows: 1fr;
+    transition: grid-template-rows .3s var(--panel-ease);
+  }
+  .ai-side-collapse > .ai-side-group { overflow: hidden; min-height: 0; }
+  .ai-side-collapse.closed { grid-template-rows: 0fr; }
 
   .ai-head {
     display: flex;
@@ -213,6 +230,79 @@
   }
   .ai-title { flex: 1; font-size: 15px; font-weight: 700; color: #2B3135; }
   .ai-head-actions { display: flex; align-items: center; gap: 2px; }
+
+  /* Companion header trades the title for a menu + chats dropdowns; full
+     screen hides both (the rail owns them there) and the title returns. */
+  .ai-head .ai-title { display: none; }
+  .app.ai-full .ai-head .ai-title { display: block; }
+  .ai-head-menu-wrap { flex: 1; display: flex; position: relative; }
+  .ai-head-chats-wrap { display: flex; position: relative; }
+  .app.ai-full .ai-head-menu-wrap,
+  .app.ai-full .ai-head-chats-wrap { display: none; }
+  .ai-head-drop {
+    display: none;
+    position: absolute; top: calc(100% + 6px); left: 0;
+    min-width: 200px;
+    background: #fff;
+    border: 1px solid #D5DEE3; border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 12px 28px rgba(10, 25, 56, .16);
+    z-index: 80;
+  }
+  .ai-head-drop.open { display: block; }
+  /* chats drop: wider, and it grows as long as its list needs */
+  .ai-head-drop.right { left: auto; right: 0; min-width: 300px; }
+
+  /* pin / unpin a chat from its row, revealed on hover — filled when pinned,
+     same language as the nav's section pins */
+  .ahd-pin {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; border-radius: 6px;
+    color: var(--nav-text-dim); cursor: pointer;
+    opacity: 0;
+    transition: opacity .12s ease, color .12s ease;
+  }
+  .ahd-row.chat:hover .ahd-pin { opacity: 1; }
+  .ahd-pin:hover { color: var(--nav-text); }
+  .ahd-pin svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+  .ahd-row.pinned .ahd-pin svg { fill: currentColor; }
+  .ahd-row {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; text-align: left;
+    background: none; border: 0; border-radius: 8px;
+    padding: 8px 10px;
+    font: inherit; font-size: 13.5px; color: #2B3135;
+    cursor: pointer;
+    transition: background .12s ease;
+  }
+  .ahd-row:hover { background: var(--nav-bg-hover); }
+  .ahd-row:active { background: var(--nav-bg-active); }
+  .ahd-row svg { width: 15px; height: 15px; flex-shrink: 0; color: #4a5878; }
+  .ahd-row span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ahd-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: .7px;
+    text-transform: uppercase; color: var(--nav-text-dim);
+    padding: 8px 10px 4px;
+  }
+  /* a label that follows rows starts a new section — give it real air */
+  .ahd-row + .ahd-label { margin-top: 14px; }
+  .ahd-search {
+    display: flex; align-items: center; gap: 8px;
+    margin: 2px 2px 4px;
+    padding: 7px 10px;
+    border: 1px solid #cdd4e0; border-radius: 8px;
+    color: #727E85; cursor: text;
+    transition: border-color .12s ease;
+  }
+  .ahd-search:focus-within { border-color: #3b6bdb; }
+  .ahd-search svg { width: 14px; height: 14px; flex-shrink: 0; }
+  .ahd-search input {
+    flex: 1; border: 0; outline: 0; background: none;
+    font: inherit; font-size: 13px; color: #2B3135;
+  }
+  .ahd-search input::placeholder { color: #727E85; }
   .ai-icon-btn {
     width: 32px; height: 32px;
     display: flex; align-items: center; justify-content: center;
@@ -313,7 +403,7 @@
   .ai-body.casing .ai-case { display: flex; }
   .ai-body.casing .ai-thinking { display: flex; }
   .ai-body.casing .ai-intro { display: none; }
-  .ai-body.casing { justify-content: flex-start; }
+  .ai-body.casing { justify-content: flex-start; padding-top: 20px; }
 
   .ai-step {
     max-height: 0; overflow: hidden; opacity: 0;
@@ -392,15 +482,15 @@
   .ai-action {
     display: flex; align-items: center; gap: 10px;
     width: 100%; text-align: left;
-    border: 1px solid #cdd4e0; border-radius: 8px; background: #fff;
+    border: 1px solid var(--btn-blue); border-radius: 8px; background: #fff;
     padding: 11px 13px;
-    font: inherit; font-size: 13.5px; color: #2B3135;
+    font: inherit; font-size: 13.5px; color: var(--btn-blue);
     cursor: pointer;
     transition: background .12s ease, border-color .12s ease;
   }
-  .ai-action:hover { background: #f1f4f9; border-color: #b7c0d0; }
-  .ai-action.primary { background: #4a5568; color: #fff; border-color: #4a5568; font-weight: 600; }
-  .ai-action.primary:hover { background: #3a4455; border-color: #3a4455; }
+  .ai-action:hover { background: #f1f4f9; }
+  .ai-action.primary { background: #fff; color: var(--btn-blue); border-color: var(--btn-blue); font-weight: 600; }
+  .ai-action.primary:hover { background: #f1f4f9; }
   .ai-action svg { width: 16px; height: 16px; flex-shrink: 0; }
   /* keyboard shortcut hint, in place of a leading icon */
   .ai-key {
@@ -411,13 +501,8 @@
     border-radius: 5px;
     background: #f7f9fc;
     font: inherit; font-size: 11.5px; font-weight: 600;
-    color: #727E85;
+    color: var(--btn-blue);
     text-align: center;
-  }
-  .ai-action.primary .ai-key {
-    border-color: rgba(255, 255, 255, .32);
-    background: rgba(255, 255, 255, .14);
-    color: #fff;
   }
   .ai-action-other {
     flex-direction: column;
@@ -425,7 +510,7 @@
     gap: 8px;
     cursor: default;
   }
-  .ai-action-other-label { font-weight: 600; color: #2B3135; font-size: 13.5px; }
+  .ai-action-other-label { font-weight: 600; color: var(--btn-blue); font-size: 13.5px; }
   .ai-action-other-input {
     width: 100%;
     border: none;
@@ -497,6 +582,33 @@
   .ai-followup-text p { margin: 0 0 10px; }
   .ai-followup-text p:last-child { margin-bottom: 0; }
 
+  /* offer / closing lines that follow the cards; the p.-qualified selector
+     outranks the `.ai-followup-text p` margin reset */
+  .ai-followup-text p.ai-followup-offer { margin: 12px 0 0; }
+
+  /* drafted follow-up email, presented as a card with a copy affordance */
+  .ai-email-card {
+    position: relative;
+    border: 1px solid #D5DEE3; border-radius: 12px;
+    background: #fff;
+    padding: 14px 44px 14px 16px;
+    font-size: 13px; line-height: 1.55; color: #2B3135;
+    margin-top: 6px;
+  }
+  .ai-email-sub { font-weight: 600; margin: 0 0 12px; }
+  .ai-email-card p { margin: 0 0 10px; }
+  .ai-email-card p:last-child { margin-bottom: 0; }
+  .ai-email-copy {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; color: #727E85; cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .ai-email-copy:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-email-copy svg { width: 15px; height: 15px; }
+  .ai-email-copy.copied { color: #0abf53; }
+
   .ai-info-card {
     border: 1px solid #D5DEE3; border-radius: 12px;   /* same as canvas widgets */
     background: #fff; overflow: hidden;
@@ -520,19 +632,21 @@
   .ai-info-row span:last-child { color: #2B3135; font-weight: 500; }
   .ai-info-row a { color: #1f5fe0; text-decoration: none; }
   .ai-info-row a:hover { text-decoration: underline; }
+  .ai-info-row span.code { color: #d1344a; font-weight: 600; }
+  .ai-info-row span.sent-ok { color: #0abf53; font-weight: 600; }
   .ai-retry-bar {
     display: flex; align-items: center; gap: 10px;
     padding: 12px 14px; border-top: 1px solid #D5DEE3;
   }
   .ai-retry-btn {
     display: flex; align-items: center; gap: 6px;
-    padding: 8px 14px; border: 1px solid #cdd4e0; border-radius: 8px;
+    padding: 8px 14px; border: 1px solid var(--btn-blue); border-radius: 8px;
     background: #fff; font: inherit; font-size: 12.5px; font-weight: 600;
-    color: #2B3135; cursor: pointer; white-space: nowrap;
+    color: var(--btn-blue); cursor: pointer; white-space: nowrap;
     transition: background .12s ease, border-color .12s ease;
   }
-  .ai-retry-btn:hover { background: #f1f4f9; border-color: #b7c0d0; }
-  .ai-retry-btn svg { width: 14px; height: 14px; color: #0abf53; }
+  .ai-retry-btn:hover { background: #f1f4f9; }
+  .ai-retry-btn svg { width: 14px; height: 14px; color: var(--btn-blue); }
   .ai-retry-field {
     flex: 1; border: none; border-bottom: 1px solid #cdd4e0;
     padding: 6px 0; font: inherit; font-size: 12.5px; color: #2B3135;
@@ -546,9 +660,6 @@
     font-size: 11.5px; font-weight: 600;
   }
   .ai-status-badge.paused { background: #fff3e0; color: #e65100; }
-  .ai-status-badge.paused::before {
-    content: ""; width: 6px; height: 6px; border-radius: 50%; background: #e65100;
-  }
   .ai-tb-time {
     font-size: 11.5px; color: #b0b8c9;
     margin-left: 4px;
@@ -955,15 +1066,15 @@
   .tb-new-wrap { position: relative; display: flex; }
   .tb-new {
     display: flex; align-items: center; gap: 6px;
-    font: inherit; font-size: 13px; font-weight: 600;
-    color: #2B3135;
+    font: inherit; font-size: 13px; font-weight: 500;
+    color: var(--btn-blue);
     background: none;
-    border: 1px solid #cdd4e0; border-radius: 8px;
+    border: 1px solid var(--btn-blue); border-radius: 8px;
     padding: 6px 10px 6px 12px;
     cursor: pointer;
     transition: background .12s ease, border-color .12s ease;
   }
-  .tb-new:hover { background: var(--nav-bg-hover); border-color: #b7c0d0; }
+  .tb-new:hover { background: var(--nav-bg-hover); }
   .tb-new:active { background: var(--nav-bg-active); }
   .tb-new svg { width: 14px; height: 14px; }
   .create-flyout {
@@ -1350,13 +1461,13 @@
   }
   /* outranks `.topbar .tb-icon svg`, which the dropdown sits inside */
   .bell-btn.secondary {
-    border: 1px solid #cdd4e0; background: #fff; color: #2B3135;
+    border: 1px solid var(--btn-blue); background: #fff; color: var(--btn-blue);
   }
-  .bell-btn.secondary:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .bell-btn.secondary:hover { background: #f1f4f9; }
   .bell-btn.tertiary {
-    border: 1px solid transparent; background: none; color: #727E85;
+    border: 1px solid transparent; background: none; color: var(--btn-blue);
   }
-  .bell-btn.tertiary:hover { background: #f1f4f9; color: #2B3135; }
+  .bell-btn.tertiary:hover { background: #f1f4f9; }
   .topbar .tb-left .tb-icon svg { width: 20px; height: 20px; }
 
   /* Canvas */
@@ -1442,16 +1553,16 @@
     align-items: center;
     gap: 8px;
     background: none;
-    border: 1px solid #cdd4e0;
+    border: 1px solid var(--btn-blue);
     cursor: pointer;
-    color: #2B3135;
+    color: var(--btn-blue);
     font-size: 15px;
     font-weight: 500;
     padding: 8px 12px;
     border-radius: 6px;
     transition: background .12s ease, border-color .12s ease;
   }
-  .pa-btn:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .pa-btn:hover { background: #f1f4f9; }
   .pa-btn.icon-only { padding: 8px; }
   .pa-btn svg { width: 20px; height: 20px; }
 
@@ -1480,7 +1591,8 @@
     align-items: center;
     justify-content: space-between;
     margin: 0 -40px 8px;
-    padding: 12px 40px 16px;   /* 16 + 8 margin = the original 24px gap */
+    /* Home alone sits lower: the welcome title centres on the nav's Home row */
+    padding: 73px 40px 16px;
   }
   .home-title {
     font-size: 26px;
@@ -1493,24 +1605,24 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    border: 1px solid #cdd4e0;
+    border: 1px solid var(--btn-blue);
     border-radius: 6px;
     background: none;
     padding: 8px 12px;
     font-size: 14px;
     font-weight: 500;
-    color: #2B3135;
+    color: var(--btn-blue);
     cursor: pointer;
     transition: background .12s ease, border-color .12s ease;
   }
-  .edit-layout:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .edit-layout:hover { background: #f1f4f9; }
   .edit-layout svg { width: 16px; height: 16px; }
 
   /* ---------- NOTIFICATIONS WIDGET ---------- */
   /* Shows one notification at a time — the highest-ranked by value at risk. */
   .btn-seeall {
     background: none; border: 0; padding: 4px 2px;
-    font: inherit; font-size: 13px; font-weight: 600; color: #1f5fe0;
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--btn-blue);
     cursor: pointer; flex-shrink: 0;
   }
   .btn-seeall:hover { text-decoration: underline; }
@@ -1610,23 +1722,23 @@
   /* sized to match the Amount / Count segmented buttons */
   .btn-sm {
     display: inline-flex; align-items: center; gap: 8px;
-    border: 1px solid #cdd4e0; background: none;
+    border: 1px solid var(--btn-blue); background: none;
     border-radius: 6px;
     padding: 8px 12px;
-    font: inherit; font-size: 14px; font-weight: 500; color: #2B3135;
+    font: inherit; font-size: 14px; font-weight: 500; color: var(--btn-blue);
     cursor: pointer;
     transition: background .12s ease, border-color .12s ease;
   }
-  .btn-sm:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .btn-sm:hover { background: #f1f4f9; }
   .btn-sm.primary {
-    background: none;
-    color: #2B3135;
-    border-color: #cdd4e0;
+    background: var(--btn-blue);
+    color: #fff;
+    border-color: var(--btn-blue);
   }
-  .btn-sm.primary:hover { background: #f1f4f9; border-color: #b7c0d0; }
+  .btn-sm.primary:hover { background: #16264d; border-color: #16264d; }
   /* tertiary: text only, no border */
-  .btn-sm.tertiary { background: none; border-color: transparent; color: #727E85; }
-  .btn-sm.tertiary:hover { background: #f1f4f9; border-color: transparent; color: #2B3135; }
+  .btn-sm.tertiary { background: none; border-color: transparent; color: var(--btn-blue); }
+  .btn-sm.tertiary:hover { background: #f1f4f9; border-color: transparent; }
   .btn-sm svg { width: 14px; height: auto; }
 
   /* ---------- ALL NOTIFICATIONS (AI panel view) ---------- */
@@ -1640,15 +1752,15 @@
   .ai-art-btn {
     display: flex; align-items: center; gap: 6px;
     padding: 8px 14px;
-    border: 1px solid #cdd4e0; border-radius: 8px; background: #fff;
-    font: inherit; font-size: 13px; font-weight: 600; color: #2B3135;
+    border: 1px solid var(--btn-blue); border-radius: 8px; background: #fff;
+    font: inherit; font-size: 13px; font-weight: 600; color: var(--btn-blue);
     cursor: pointer;
     transition: background .12s ease, border-color .12s ease;
   }
-  .ai-art-btn:hover { background: var(--nav-bg-hover); border-color: #b7c0d0; }
+  .ai-art-btn:hover { background: var(--nav-bg-hover); }
   .ai-art-btn svg { width: 13px; height: 13px; }
-  .ai-art-btn.primary { background: #1f5fe0; border-color: #1f5fe0; color: #fff; }
-  .ai-art-btn.primary:hover { background: #194cb3; border-color: #194cb3; }
+  .ai-art-btn.primary { background: #fff; border-color: var(--btn-blue); color: var(--btn-blue); }
+  .ai-art-btn.primary:hover { background: var(--nav-bg-hover); }
   .ai-art-search {
     margin-top: 12px;
     display: flex; align-items: center; gap: 9px;
@@ -1834,6 +1946,184 @@
   /* ---------- PASSCODE GATE ----------
      Sits above the sign-in screen and holds its entrance back until the scrim
      has fully cleared. Client-side only — a deterrent, not real security. */
+  /* ---------- MAIL INBOX (prototype opening scene) ----------
+     Gmail-style inbox the prototype starts in: the critical Adyen email's
+     CTA is what leads to the sign-in screen. Sits above the sign-in screen
+     (z 200) and below the passcode gate (z 300). */
+  .mail-screen {
+    position: fixed; inset: 0; z-index: 210;
+    display: flex; flex-direction: column;
+    background: #f6f8fc;
+    color: #1f1f1f;
+    /* Gmail's own stack, not the prototype's UI font */
+    font-family: 'Google Sans', Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+    transition: opacity .35s ease;
+  }
+  .mail-screen.leaving { opacity: 0; pointer-events: none; }
+  .mail-top {
+    flex-shrink: 0;
+    position: relative;    /* anchors the screen-centred search pill */
+    display: flex; align-items: center; gap: 20px;
+    padding: 10px 20px 10px 16px;
+  }
+  .mail-burger {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #444746; cursor: pointer;
+  }
+  .mail-burger:hover { background: rgba(68, 71, 70, .08); }
+  .mail-burger svg { width: 20px; height: 20px; }
+  .mail-logo { display: flex; align-items: center; gap: 8px; }
+  .mail-logo svg { width: 26px; height: 26px; }
+  .mail-logo span { font-size: 21px; color: #5f6368; }
+  .mail-search {
+    display: flex; align-items: center; gap: 12px;
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 46%; max-width: 620px; height: 46px;
+    padding: 0 8px 0 16px;
+    background: #e9eef6; border-radius: 24px;
+    color: #444746; font-size: 15px;
+    cursor: text;
+  }
+  .mail-search svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .mail-top-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .mail-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #b23c2e; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 600;
+    cursor: default;
+  }
+  .mail-body { flex: 1; display: flex; min-height: 0; }
+  .mail-rail { flex-shrink: 0; width: 232px; padding: 8px 12px 0 8px; }
+  .mail-compose {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin: 0 0 14px 4px;
+    padding: 14px 20px 14px 16px;
+    border: 0; border-radius: 16px;
+    background: #c2e7ff; color: #001d35;
+    font: inherit; font-size: 14px; font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(60, 64, 67, .18);
+  }
+  .mail-compose svg { width: 18px; height: 18px; }
+  .mail-rail-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 6px 12px 6px 14px;
+    border-radius: 0 16px 16px 0;
+    font-size: 14px; color: #202124;
+    cursor: pointer;
+  }
+  .mail-rail-item:hover { background: rgba(68, 71, 70, .08); }
+  .mail-rail-item.active { background: #d3e3fd; font-weight: 700; }
+  .mail-rail-item svg { width: 18px; height: 18px; flex-shrink: 0; color: #444746; }
+  .mail-rail-item .cnt { margin-left: auto; font-size: 12.5px; }
+  .mail-main {
+    flex: 1; min-width: 0;
+    margin: 0 16px 16px 0;
+    background: #fff; border-radius: 16px;
+    overflow: auto;
+  }
+  /* --- list view --- */
+  .mail-list { padding-top: 8px; }
+  .mail-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 16px; height: 42px;
+    font-size: 13.5px; color: #5f6368;
+    border-bottom: 1px solid #f1f3f4;
+    cursor: pointer;
+  }
+  .mail-row:hover { box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 2px rgba(60, 64, 67, .3); }
+  .mail-row-star { display: flex; color: #b8bcc2; flex-shrink: 0; }
+  .mail-row-star svg { width: 18px; height: 18px; }
+  .mail-row-from { width: 168px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #202124; }
+  .mail-row-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mail-row-text b { color: #202124; font-weight: 500; }
+  .mail-row-time { flex-shrink: 0; font-size: 12px; margin-left: 12px; }
+  .mail-row.unread .mail-row-from,
+  .mail-row.unread .mail-row-text b,
+  .mail-row.unread .mail-row-time { font-weight: 700; color: #202124; }
+  .mail-chip-crit {
+    display: inline-block; vertical-align: 1px;
+    margin-right: 8px; padding: 2px 8px;
+    border-radius: 4px;
+    background: #fce8e6; color: #c5221f;
+    font-size: 11px; font-weight: 700;
+  }
+  /* --- read view --- */
+  .mail-toolbar {
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 12px; border-bottom: 1px solid #f1f3f4;
+  }
+  .mail-tool {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; color: #444746; cursor: pointer;
+  }
+  .mail-tool:hover { background: rgba(68, 71, 70, .08); }
+  .mail-tool svg { width: 18px; height: 18px; }
+  .mail-subject {
+    display: flex; align-items: center; gap: 12px;
+    padding: 20px 24px 8px 68px;
+    font-size: 21px; color: #1f1f1f;
+  }
+  .mail-subject .mail-chip-crit { font-size: 12px; vertical-align: 2px; }
+  .mail-sender {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 10px 24px 4px 20px;
+  }
+  .mail-sender-avatar {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: #0abf53; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 700;
+  }
+  .mail-sender-who { flex: 1; min-width: 0; font-size: 13px; color: #5f6368; }
+  .mail-sender-who b { font-size: 14px; color: #1f1f1f; margin-right: 6px; }
+  .mail-sender-time { flex-shrink: 0; font-size: 12.5px; color: #5f6368; }
+  /* the Adyen-branded email body — card centred in the reading pane */
+  .mail-email { padding: 18px 24px 40px; }
+  .mail-email-card {
+    max-width: 640px;
+    margin: 0 auto;
+    border: 1px solid #e8eaed; border-radius: 8px;
+    padding: 32px 36px 28px;
+  }
+  /* full-width green banner with the ai mark centred in it */
+  .mail-adyen-logo {
+    display: flex; align-items: center; justify-content: center;
+    width: 100%;
+    background: var(--green);
+    border-radius: 6px; padding: 20px 0;
+    margin-bottom: 26px;
+  }
+  .mail-adyen-logo svg { width: 66px; height: auto; display: block; }
+  .mail-email-h1 { font-size: 24px; font-weight: 600; color: #0a1938; margin: 0 0 18px; }
+  .mail-email-p { font-size: 14.5px; line-height: 1.6; color: #3c4043; margin: 0 0 14px; }
+  .mail-email-kv {
+    background: #f8f4ec; border-radius: 6px;
+    padding: 18px 22px; margin: 22px 0;
+  }
+  .mail-email-kv-row {
+    display: flex; justify-content: space-between; gap: 20px;
+    padding: 7px 0; font-size: 14px;
+  }
+  .mail-email-kv-row + .mail-email-kv-row { border-top: 1px solid #e8e0d0; }
+  .mail-email-kv-row span:first-child { font-weight: 700; color: #1f1f1f; }
+  .mail-email-kv-row span:last-child { color: #3c4043; }
+  .mail-cta {
+    display: inline-block;
+    margin: 6px 0 10px;
+    padding: 13px 26px;
+    border: 0; border-radius: 8px;
+    background: var(--green); color: #fff;
+    font: inherit; font-size: 14.5px; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .mail-cta:hover { background: #09a847; }
+  .mail-email-foot { font-size: 12px; color: #80868b; line-height: 1.5; margin-top: 22px; }
+
   .gate {
     position: fixed; inset: 0; z-index: 300;
     display: flex; align-items: center; justify-content: center;
@@ -2036,6 +2326,144 @@
       <div class="gate-sub">Enter the passcode to continue</div>
       <input class="gate-input" id="gate-input" type="password" inputmode="numeric"
              maxlength="4" autocomplete="off" aria-label="Passcode" />
+    </div>
+  </div>
+
+  <!-- ============ MAIL INBOX (opening scene) ============ -->
+  <div class="mail-screen" id="mail-screen">
+    <header class="mail-top">
+      <span class="mail-burger">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+      </span>
+      <span class="mail-logo">
+        <svg viewBox="0 0 24 24"><path fill="#4285f4" d="M1.636 20h3.819V11.73L0 7.636v10.91C0 19.268.732 20 1.636 20"/><path fill="#34a853" d="M18.545 20h3.819c.904 0 1.636-.732 1.636-1.636V7.636l-5.455 4.093"/><path fill="#fbbc04" d="M18.545 4.64v7.09L24 7.636v-2.18c0-2.022-2.309-3.177-3.927-1.963"/><path fill="#ea4335" d="M5.455 11.73V4.64L12 9.548l6.545-4.909v7.091L12 16.64"/><path fill="#c5221f" d="M0 5.457v2.18l5.455 4.092V4.64L3.927 3.493C2.309 2.28 0 3.434 0 5.457"/></svg>
+        <span>Gmail</span>
+      </span>
+      <div class="mail-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+        Search mail
+      </div>
+      <div class="mail-top-right">
+        <span class="mail-avatar">M</span>
+      </div>
+    </header>
+    <div class="mail-body">
+      <aside class="mail-rail">
+        <button class="mail-compose" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z"/></svg>
+          Compose
+        </button>
+        <div class="mail-rail-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+          Inbox <span class="cnt">1</span>
+        </div>
+        <div class="mail-rail-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Starred
+        </div>
+        <div class="mail-rail-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 13.5"/></svg>
+          Snoozed
+        </div>
+        <div class="mail-rail-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Sent
+        </div>
+        <div class="mail-rail-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Drafts <span class="cnt">4</span>
+        </div>
+        <div class="mail-rail-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          More
+        </div>
+      </aside>
+      <main class="mail-main">
+        <div class="mail-list" id="mail-list">
+          <div class="mail-row unread" id="mail-open-critical">
+            <span class="mail-row-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="mail-row-from">Adyen</span>
+            <span class="mail-row-text"><span class="mail-chip-crit">Critical</span><b>Subscription payment failed — expired card</b> — Northwind Retail's $48,000.00 renewal failed. The next retry will fail again unless the card is updated.</span>
+            <span class="mail-row-time">7:58 AM</span>
+          </div>
+          <div class="mail-row">
+            <span class="mail-row-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="mail-row-from">REI | Capital One</span>
+            <span class="mail-row-text"><b>We've received your payment</b> — Thanks for your payment of $44.00. Your available credit will typically be updated within a day.</span>
+            <span class="mail-row-time">Aug 1</span>
+          </div>
+          <div class="mail-row">
+            <span class="mail-row-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="mail-row-from">Figma</span>
+            <span class="mail-row-text"><b>Updates in Customer Area redesign</b> — 12 new comments this week across 3 files you follow.</span>
+            <span class="mail-row-time">Aug 1</span>
+          </div>
+          <div class="mail-row">
+            <span class="mail-row-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="mail-row-from">DocuSign</span>
+            <span class="mail-row-text"><b>Completed: Office lease renewal</b> — All parties have signed. A copy is attached for your records.</span>
+            <span class="mail-row-time">Jul 31</span>
+          </div>
+          <div class="mail-row">
+            <span class="mail-row-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="mail-row-from">Google Cloud</span>
+            <span class="mail-row-text"><b>Your July invoice is available</b> — Invoice for billing account 01A2-B3C4 is ready to view.</span>
+            <span class="mail-row-time">Jul 31</span>
+          </div>
+          <div class="mail-row">
+            <span class="mail-row-star"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+            <span class="mail-row-from">LinkedIn</span>
+            <span class="mail-row-text"><b>You appeared in 9 searches this week</b> — See who's been looking at your profile.</span>
+            <span class="mail-row-time">Jul 30</span>
+          </div>
+        </div>
+        <div class="mail-read" id="mail-read" hidden>
+          <div class="mail-toolbar">
+            <button class="mail-tool" id="mail-back" type="button" title="Back to inbox">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            </button>
+            <button class="mail-tool" type="button" title="Archive">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1"/><path d="M5 8v11a1 1 0 001 1h12a1 1 0 001-1V8"/><line x1="10" y1="13" x2="14" y2="13"/></svg>
+            </button>
+            <button class="mail-tool" type="button" title="Delete">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+            </button>
+            <button class="mail-tool" type="button" title="Mark as unread">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22 6 12 13 2 6"/></svg>
+            </button>
+          </div>
+          <h1 class="mail-subject">Subscription payment failed — expired card <span class="mail-chip-crit">Critical</span></h1>
+          <div class="mail-sender">
+            <span class="mail-sender-avatar">A</span>
+            <div class="mail-sender-who"><b>Adyen</b> &lt;no-reply@notification.adyen.com&gt;<br>to me</div>
+            <span class="mail-sender-time">7:58 AM (1 hour ago)</span>
+          </div>
+          <div class="mail-email">
+            <div class="mail-email-card">
+              <div class="mail-adyen-logo">
+                <!-- static "ai" lettermark (resting frame of ai-anim.html: a + i-stem + petal as the i-dot) -->
+                <svg viewBox="0 0 101 66" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M53 0.5H0.5V16.5H37.5V48.5H26.5V27H0.5V53.5C0.5 60.1274 5.87259 65.5 12.5 65.5H65V12.5C65 5.87258 59.6274 0.5 53 0.5Z" fill="#fff"/>
+                  <path d="M88 27.5H73V65.5H100V39.5C100 32.8726 94.6274 27.5 88 27.5Z" fill="#fff"/>
+                  <path transform="translate(24 -15.5)" d="M61 16H76V25C76 31.6274 70.6274 37 64 37H49V28C49 21.3726 54.3726 16 61 16Z" fill="#fff"/>
+                </svg>
+              </div>
+              <h2 class="mail-email-h1">A subscription renewal is failing</h2>
+              <p class="mail-email-p">Michael,</p>
+              <p class="mail-email-p">Northwind Retail's $48,000.00 annual renewal failed this morning because the card on file has expired. An automatic card-update request was sent to the customer 10 hours ago.</p>
+              <div class="mail-email-kv">
+                <div class="mail-email-kv-row"><span>Customer</span><span>Northwind Retail</span></div>
+                <div class="mail-email-kv-row"><span>Amount</span><span>$48,000.00</span></div>
+                <div class="mail-email-kv-row"><span>Refusal reason</span><span>Expired card</span></div>
+                <div class="mail-email-kv-row"><span>Next retry</span><span>In 2 days · will fail again</span></div>
+              </div>
+              <p class="mail-email-p">Review the transaction in your Customer Area to resolve it before the retry window closes.</p>
+              <button class="mail-cta" id="mail-cta" type="button">Review in Customer Area</button>
+              <div class="mail-email-foot">You're receiving this email because critical notifications are enabled for your Adyen Customer Area. Manage your notification preferences in Settings.</div>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
   </div>
 
@@ -2645,7 +3073,7 @@
                 <span>Artifacts</span>
               </button>
               <button class="ai-side-item" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="9" width="8" height="6" rx="2"/><rect x="13.5" y="9" width="8" height="6" rx="2"/><line x1="10.5" y1="12" x2="13.5" y2="12"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/><path d="M12 17v5"/></svg>
                 <span>Connectors</span>
               </button>
               <button class="ai-side-item" type="button">
@@ -2658,20 +3086,30 @@
               </button>
             </div>
 
-            <div class="ai-side-label">Pinned</div>
+            <button class="ai-side-label" type="button" aria-expanded="true">
+              <span>Pinned</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="ai-side-collapse">
             <div class="ai-side-group" data-section="pinned">
               <div class="ai-side-item sub"><span>Weekly auth-rate digest</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Refusal reasons by issuer</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>iDEAL growth watch</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
             </div>
+            </div>
 
-            <div class="ai-side-label">Recents</div>
+            <button class="ai-side-label" type="button" aria-expanded="true">
+              <span>Recents</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="ai-side-collapse">
             <div class="ai-side-group" data-section="recents">
               <div class="ai-side-item sub" id="recent-critical"><span>Critical notification · 8/12/26</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Summarize my payment performance</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Ways to optimize payment methods</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Chargebacks vs last month</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
               <div class="ai-side-item sub"><span>Why did Saturday dip?</span><button class="ai-side-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button></div>
+            </div>
             </div>
           </div>
         </aside>
@@ -2710,10 +3148,55 @@
             <svg class="ico-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="20" y2="4"/><line x1="10" y1="14" x2="4" y2="20"/></svg>
           </button>
           <span class="ai-title">Orchestrator</span>
-          <div class="ai-head-actions">
-            <button class="ai-icon-btn ai-newchat" type="button" title="New chat">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+
+          <!-- companion-only: menu where the title sits in full screen -->
+          <span class="ai-head-menu-wrap">
+            <button class="ai-icon-btn" id="ai-menu-btn" type="button" title="Menu">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
             </button>
+            <div class="ai-head-drop" id="ai-menu-drop">
+              <button class="ahd-row" data-act="new" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>New</span>
+              </button>
+              <button class="ahd-row" data-act="artifacts" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span>Artifacts</span>
+              </button>
+              <button class="ahd-row" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/><path d="M12 17v5"/></svg>
+                <span>Connectors</span>
+              </button>
+              <button class="ahd-row" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
+                <span>Skills</span>
+              </button>
+            </div>
+          </span>
+
+          <div class="ai-head-actions">
+            <!-- companion-only: pinned + recent chats -->
+            <span class="ai-head-chats-wrap">
+              <button class="ai-icon-btn" id="ai-chats-btn" type="button" title="Chats">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+              <div class="ai-head-drop right" id="ai-chats-drop">
+                <label class="ahd-search">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+                  <input type="text" id="ai-chats-search" placeholder="Search chats" autocomplete="off" aria-label="Search chats" />
+                </label>
+                <div class="ahd-label">Pinned</div>
+                <button class="ahd-row chat" type="button"><span>Weekly auth-rate digest</span></button>
+                <button class="ahd-row chat" type="button"><span>Refusal reasons by issuer</span></button>
+                <button class="ahd-row chat" type="button"><span>iDEAL growth watch</span></button>
+                <div class="ahd-label">Recents</div>
+                <button class="ahd-row chat" id="drop-critical" type="button"><span>Critical notification · 8/12/26</span></button>
+                <button class="ahd-row chat" type="button"><span>Summarize my payment performance</span></button>
+                <button class="ahd-row chat" type="button"><span>Ways to optimize payment methods</span></button>
+                <button class="ahd-row chat" type="button"><span>Chargebacks vs last month</span></button>
+                <button class="ahd-row chat" type="button"><span>Why did Saturday dip?</span></button>
+              </div>
+            </span>
           </div>
         </header>
 
@@ -2796,21 +3279,26 @@
           <!-- pre-seeded case: opens already knowing what happened -->
           <div class="ai-case">
             <div class="ai-step">
-              <div class="ai-step-label">What happened</div>
-              <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal failed because their card expired.</div>
-              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before. An automatic email was sent to their billing contact 10 hours ago.</div>
+              <div class="ai-info-card">
+                <div class="ai-info-head">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  Transaction
+                </div>
+                <div class="ai-info-body">
+                  <div class="ai-info-row"><span>Customer</span><span>Northwind Retail</span></div>
+                  <div class="ai-info-row"><span>Amount</span><span>$48,000.00</span></div>
+                  <div class="ai-info-row"><span>Card</span><span>Visa ···· 5555 · exp 04/26</span></div>
+                  <div class="ai-info-row"><span>Refusal</span><span class="code">Expired card</span></div>
+                  <div class="ai-info-row"><span>Attempted</span><span>Yesterday, 02:14 CET</span></div>
+                  <div class="ai-info-row"><span>Next retry</span><span>In 2 days · will fail again</span></div>
+                </div>
+              </div>
             </div>
 
             <div class="ai-step">
-              <div class="ai-step-label">The transaction</div>
-              <div class="ai-evidence">
-                <div class="ai-ev-kv"><span>Customer</span><span class="v">Northwind Retail</span></div>
-                <div class="ai-ev-kv"><span>Amount</span><span class="v">$48,000.00</span></div>
-                <div class="ai-ev-kv"><span>Card</span><span class="v">Visa ···· 5555 · exp 04/26</span></div>
-                <div class="ai-ev-kv"><span>Refusal</span><span class="v code">06 — Expired Card</span></div>
-                <div class="ai-ev-kv"><span>Attempted</span><span class="v">Yesterday, 02:14 CET</span></div>
-                <div class="ai-ev-kv"><span>Next retry</span><span class="v">In 2 days · will fail again</span></div>
-              </div>
+              <div class="ai-step-label">What happened</div>
+              <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal failed because their card expired.</div>
+              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before. An automatic email was sent to their billing contact 10 hours ago.</div>
             </div>
 
             <div class="ai-step" id="ai-step-options">
@@ -2822,7 +3310,7 @@
                 </button>
                 <button class="ai-action" type="button">
                   <kbd class="ai-key">⌘2</kbd>
-                  Send a card-update link
+                  Send another card-update link
                 </button>
                 <button class="ai-action" type="button">
                   <kbd class="ai-key">⌘3</kbd>
@@ -2858,20 +3346,6 @@
                   <div class="ai-followup-cards" id="ai-followup-cards">
                   <div class="ai-info-card">
                     <div class="ai-info-head">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                      Billing contact
-                    </div>
-                    <div class="ai-info-body">
-                      <div class="ai-info-row"><span>Name</span><span>Sarah Chen</span></div>
-                      <div class="ai-info-row"><span>Title</span><span>Accounts Payable Manager</span></div>
-                      <div class="ai-info-row"><span>Email</span><span><a href="#">s.chen@northwindretail.com</a></span></div>
-                      <div class="ai-info-row"><span>Phone</span><span><a href="#">+1 (415) 555-0192</a></span></div>
-                      <div class="ai-info-row"><span>Best response</span><span>Tues–Thurs, 9am–12pm PT</span></div>
-                    </div>
-                  </div>
-
-                  <div class="ai-info-card">
-                    <div class="ai-info-head">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
                       Payment retry
                       <span class="ai-status-badge paused">Paused</span>
@@ -2888,6 +3362,73 @@
                       <input class="ai-retry-field" type="text" placeholder="Retry in 7 days" value="7 days" />
                     </div>
                   </div>
+
+                  <div class="ai-info-card">
+                    <div class="ai-info-head">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      Billing contact
+                    </div>
+                    <div class="ai-info-body">
+                      <div class="ai-info-row"><span>Name</span><span>Sarah Chen</span></div>
+                      <div class="ai-info-row"><span>Title</span><span>Accounts Payable Manager</span></div>
+                      <div class="ai-info-row"><span>Email</span><span><a href="#">s.chen@northwindretail.com</a></span></div>
+                      <div class="ai-info-row"><span>Phone</span><span><a href="#">+1 (415) 555-0192</a></span></div>
+                      <div class="ai-info-row"><span>Best response</span><span>Tues–Thurs, 9am–12pm PT</span></div>
+                    </div>
+                  </div>
+
+                  <p class="ai-followup-offer">Want me to write a follow up email for you that doesn't look like an automated reply? And if it looks good, I can send it for you.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-case-ask" id="ai-email-ask"></div>
+
+            <div class="ai-followup" id="ai-email-followup">
+              <div class="ai-followup-msg">
+                <div class="ai-followup-text">
+                  <p>Sounds good, let me work on it.</p>
+
+                  <div class="ai-followup-cards" id="ai-email-cards">
+                    <div class="ai-email-card">
+                      <button class="ai-email-copy" id="ai-email-copy" type="button" title="Copy email">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                      </button>
+                      <p class="ai-email-sub">Subject: Card update needed to renew subscription</p>
+                      <p>Hi Sarah,</p>
+                      <p>Northwind Retail's annual renewal didn't go through this week — the card we have on file expired in April. I've paused any further charge attempts so nothing keeps hitting the old card.</p>
+                      <p>When you have a minute, you can update the card securely here: <a href="#">Update payment method</a>. Once it's updated I'll rerun the payment the same day and confirm it's gone through.</p>
+                      <p>Happy to sort it out over a quick call instead if that's easier.</p>
+                      <p>Best,<br>Michael</p>
+                    </div>
+
+                    <p class="ai-followup-offer">Want me to edit anything or send this over for you?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-case-ask" id="ai-sent-ask"></div>
+
+            <div class="ai-followup" id="ai-sent-followup">
+              <div class="ai-followup-msg">
+                <div class="ai-followup-text">
+                  <p>Sending it over now.</p>
+
+                  <div class="ai-followup-cards" id="ai-sent-cards">
+                    <div class="ai-info-card">
+                      <div class="ai-info-head">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                        Email sent
+                      </div>
+                      <div class="ai-info-body">
+                        <div class="ai-info-row"><span>To</span><span>Sarah Chen · s.chen@northwindretail.com</span></div>
+                        <div class="ai-info-row"><span>Subject</span><span>Card update needed to renew subscription</span></div>
+                        <div class="ai-info-row"><span>Sent</span><span>Just now</span></div>
+                        <div class="ai-info-row"><span>Status</span><span class="sent-ok">Delivered</span></div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3059,7 +3600,7 @@
       var navList    = document.querySelector('nav > ul');
       var showAll    = document.getElementById('show-all');
       var hiddenList = document.getElementById('hidden-list');
-      var UNPINNED   = ['In-person payments', 'Pay by Link', 'Developers', 'Giving'];
+      var UNPINNED   = ['Reports', 'In-person payments', 'Pay by Link', 'Developers', 'Giving'];
 
       // Every L0 section except Homepage, Favorites, the language picker and
       // the drawer itself.
@@ -3413,6 +3954,18 @@
       var aiStepOptions = document.getElementById('ai-step-options');
       var aiFollowupTimeout = null;
       var aiStatusTimeout = null;
+      // stage 2: the drafted follow-up email, armed once the info cards land
+      var aiEmailArmed = false;
+      var aiEmailT1 = null, aiEmailT2 = null;
+      var aiEmailAsk = document.getElementById('ai-email-ask');
+      var aiEmailFollowup = document.getElementById('ai-email-followup');
+      var aiEmailCards = document.getElementById('ai-email-cards');
+      // stage 3: sending the email, armed once the draft is presented
+      var aiSentArmed = false;
+      var aiSentT1 = null, aiSentT2 = null;
+      var aiSentAsk = document.getElementById('ai-sent-ask');
+      var aiSentFollowup = document.getElementById('ai-sent-followup');
+      var aiSentCards = document.getElementById('ai-sent-cards');
 
       function openAiCase() {
         openAiPanel();
@@ -3423,8 +3976,22 @@
         aiFollowupCards.classList.remove('cards-in');
         aiCaseAsk.classList.remove('visible');
         aiCaseAsk.innerHTML = '';
+        aiEmailArmed = false;
+        aiEmailFollowup.classList.remove('visible');
+        aiEmailCards.classList.remove('cards-in');
+        aiEmailAsk.classList.remove('visible');
+        aiEmailAsk.innerHTML = '';
+        aiSentArmed = false;
+        aiSentFollowup.classList.remove('visible');
+        aiSentCards.classList.remove('cards-in');
+        aiSentAsk.classList.remove('visible');
+        aiSentAsk.innerHTML = '';
         clearTimeout(aiFollowupTimeout);
         clearTimeout(aiStatusTimeout);
+        clearTimeout(aiEmailT1);
+        clearTimeout(aiEmailT2);
+        clearTimeout(aiSentT1);
+        clearTimeout(aiSentT2);
         var steps = document.querySelectorAll('.ai-case .ai-step');
         steps.forEach(function (s) { s.classList.remove('step-in'); });
         var delays = [100, 1100, 2100, 3100];
@@ -3488,6 +4055,7 @@
                   'Found their info, and I was able to stop that payment.';
                 aiFollowupStatus.classList.remove('swapping');
                 aiFollowupCards.classList.add('cards-in');
+                aiEmailArmed = true;             // the email offer is now up
                 pinAiBottom(750);
               }, 250);
             }, 9000);
@@ -3496,6 +4064,100 @@
               aiThinking.classList.add('done');
             }, 9500);
           }
+        });
+      }
+
+      // "yes" sent from the chat bar while the email offer is up: draft the
+      // follow-up email in two 4s thinking beats.
+      function runEmailFlow(text) {
+        aiEmailArmed = false;
+        aiEmailAsk.innerHTML = '<span></span>';
+        aiEmailAsk.querySelector('span').textContent = text;
+        aiEmailAsk.classList.add('visible');
+        pinAiBottom(600);
+        aiThinking.querySelectorAll('.petal').forEach(function (p) {
+          p.style.animation = 'none';
+          void p.offsetWidth;
+          p.style.animation = '';
+          p.style.animationIterationCount = '3';
+        });
+        aiThinking.classList.remove('done');
+        clearInterval(aiThinkInterval);
+        clearTimeout(aiThinkTimeout);
+        var start = Date.now();
+        aiThinkingTimer.textContent = '0s';
+        aiThinkInterval = setInterval(function () {
+          var total = Math.floor((Date.now() - start) / 1000);
+          var m = Math.floor(total / 60);
+          var s = total % 60;
+          aiThinkingTimer.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+        }, 1000);
+        // 4s: acknowledge — 8s: present the drafted email
+        aiEmailT1 = setTimeout(function () {
+          aiEmailFollowup.classList.add('visible');
+          pinAiBottom(500);
+        }, 4000);
+        aiEmailT2 = setTimeout(function () {
+          aiEmailCards.classList.add('cards-in');
+          aiSentArmed = true;                    // "send it" is now on offer
+          pinAiBottom(750);
+        }, 8000);
+        aiThinkTimeout = setTimeout(function () {
+          clearInterval(aiThinkInterval);
+          aiThinking.classList.add('done');
+        }, 8500);
+      }
+
+      // anything sent while the draft is up: confirm and "send" the email —
+      // 2s thinking beat, then 4 more before the confirmation card.
+      function runSentFlow(text) {
+        aiSentArmed = false;
+        aiSentAsk.innerHTML = '<span></span>';
+        aiSentAsk.querySelector('span').textContent = text;
+        aiSentAsk.classList.add('visible');
+        pinAiBottom(600);
+        aiThinking.querySelectorAll('.petal').forEach(function (p) {
+          p.style.animation = 'none';
+          void p.offsetWidth;
+          p.style.animation = '';
+          p.style.animationIterationCount = '2';
+        });
+        aiThinking.classList.remove('done');
+        clearInterval(aiThinkInterval);
+        clearTimeout(aiThinkTimeout);
+        var start = Date.now();
+        aiThinkingTimer.textContent = '0s';
+        aiThinkInterval = setInterval(function () {
+          var total = Math.floor((Date.now() - start) / 1000);
+          var m = Math.floor(total / 60);
+          var s = total % 60;
+          aiThinkingTimer.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+        }, 1000);
+        aiSentT1 = setTimeout(function () {
+          aiSentFollowup.classList.add('visible');
+          pinAiBottom(500);
+        }, 2000);
+        aiSentT2 = setTimeout(function () {
+          aiSentCards.classList.add('cards-in');
+          pinAiBottom(750);
+        }, 6000);
+        aiThinkTimeout = setTimeout(function () {
+          clearInterval(aiThinkInterval);
+          aiThinking.classList.add('done');
+        }, 6500);
+      }
+
+      // copy icon on the drafted email
+      var aiEmailCopy = document.getElementById('ai-email-copy');
+      if (aiEmailCopy) {
+        aiEmailCopy.addEventListener('click', function () {
+          var card = aiEmailCopy.closest('.ai-email-card');
+          var text = Array.prototype.map.call(card.querySelectorAll('p'), function (p) {
+            return p.textContent;
+          }).join('\n\n');
+          try { navigator.clipboard.writeText(text); } catch (e) {}
+          aiEmailCopy.classList.add('copied');
+          setTimeout(function () { aiEmailCopy.classList.remove('copied'); }, 1200);
         });
       }
 
@@ -3577,6 +4239,18 @@
         aiMenuRow = null;
       }
 
+      // Pinned / Recents section headers collapse their group
+      document.querySelectorAll('.ai-side-label').forEach(function (lab) {
+        lab.addEventListener('click', function () {
+          var closed = lab.classList.toggle('closed');
+          lab.setAttribute('aria-expanded', closed ? 'false' : 'true');
+          var wrap = lab.nextElementSibling;
+          if (wrap && wrap.classList.contains('ai-side-collapse')) {
+            wrap.classList.toggle('closed', closed);
+          }
+        });
+      });
+
       document.querySelectorAll('.ai-side-more').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
@@ -3654,7 +4328,15 @@
       }
       function submitAiField() {
         if (!aiField.value.trim()) return;
-        aiSend(aiField.value.trim(), genericReply);
+        // mid-case with the email offer up, the chat bar continues the case
+        // instead of starting a generic chat
+        if (aiSentArmed && aiBody.classList.contains('casing')) {
+          runSentFlow(aiField.value.trim());
+        } else if (aiEmailArmed && aiBody.classList.contains('casing')) {
+          runEmailFlow(aiField.value.trim());
+        } else {
+          aiSend(aiField.value.trim(), genericReply);
+        }
         aiField.value = '';
         syncSendBtn();
       }
@@ -3669,12 +4351,78 @@
       }
       if (aiSendBtn) aiSendBtn.addEventListener('click', submitAiField);
 
-      var aiNewChat = document.querySelector('.ai-newchat');
-      if (aiNewChat) {
-        aiNewChat.addEventListener('click', function () {
-          aiChat.innerHTML = '';
-          aiBody.classList.remove('chatting', 'casing', 'noticing');
-          playAiIntro();
+      // --- Companion header dropdowns: menu (left) and chats (right) ---
+      var aiMenuBtn = document.getElementById('ai-menu-btn');
+      var aiMenuDrop = document.getElementById('ai-menu-drop');
+      var aiChatsBtn = document.getElementById('ai-chats-btn');
+      var aiChatsDrop = document.getElementById('ai-chats-drop');
+      var aiChatsSearch = document.getElementById('ai-chats-search');
+
+      function closeHeadDrops() {
+        if (aiMenuDrop) aiMenuDrop.classList.remove('open');
+        if (aiChatsDrop) aiChatsDrop.classList.remove('open');
+      }
+      if (aiMenuBtn) {
+        aiMenuBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          aiChatsDrop.classList.remove('open');
+          aiMenuDrop.classList.toggle('open');
+        });
+        aiChatsBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          aiMenuDrop.classList.remove('open');
+          aiChatsDrop.classList.toggle('open');
+        });
+        document.addEventListener('click', function (e) {
+          if (!e.target.closest('.ai-head-menu-wrap, .ai-head-chats-wrap')) closeHeadDrops();
+        });
+
+        aiMenuDrop.addEventListener('click', function (e) {
+          var row = e.target.closest('.ahd-row');
+          if (!row) return;
+          closeHeadDrops();
+          if (row.dataset.act === 'new') {
+            aiChat.innerHTML = '';
+            aiBody.classList.remove('chatting', 'casing', 'noticing', 'artifacting');
+            playAiIntro();
+          } else if (row.dataset.act === 'artifacts') {
+            aiBody.classList.remove('chatting', 'casing', 'noticing');
+            aiBody.classList.add('artifacting');
+          }
+        });
+        aiChatsDrop.addEventListener('click', function (e) {
+          var row = e.target.closest('.ahd-row');
+          if (!row) return;
+          closeHeadDrops();
+          if (row.id === 'drop-critical') openAiCase();
+        });
+        // the search bar filters the pinned / recent rows as you type
+        aiChatsSearch.addEventListener('input', function () {
+          var q = aiChatsSearch.value.trim().toLowerCase();
+          aiChatsDrop.querySelectorAll('.ahd-row.chat').forEach(function (r) {
+            r.style.display = r.textContent.toLowerCase().indexOf(q) === -1 ? 'none' : '';
+          });
+        });
+
+        // hover pins move a chat between the Pinned and Recents sections
+        var ahdRecentsLabel = aiChatsDrop.querySelectorAll('.ahd-label')[1];
+        aiChatsDrop.querySelectorAll('.ahd-row.chat').forEach(function (row) {
+          var pin = document.createElement('button');
+          pin.className = 'ahd-pin';
+          pin.type = 'button';
+          pin.innerHTML = pinSVG;   // same thumbtack as the nav's section pins
+          if (row.compareDocumentPosition(ahdRecentsLabel) & Node.DOCUMENT_POSITION_FOLLOWING) {
+            row.classList.add('pinned');
+          }
+          pin.title = row.classList.contains('pinned') ? 'Unpin' : 'Pin';
+          row.appendChild(pin);
+          pin.addEventListener('click', function (e) {
+            e.stopPropagation();                       // pin, don't open the chat
+            var pinned = row.classList.toggle('pinned');
+            pin.title = pinned ? 'Unpin' : 'Pin';
+            if (pinned) aiChatsDrop.insertBefore(row, ahdRecentsLabel);
+            else aiChatsDrop.insertBefore(row, ahdRecentsLabel.nextSibling);
+          });
         });
       }
 
@@ -3709,6 +4457,10 @@
           var r = svg.getBoundingClientRect();
           if (!r.width || !r.height || !vb.width || !vb.height) return;
           var k = (r.height / vb.height) / (r.width / vb.width);
+          // At rest k ≈ 1.0–1.15; while the panel animates the canvas passes
+          // through near-zero widths where k explodes into the hundreds and
+          // smears the labels — the visible "jerk" on reveal. Clamp to sanity.
+          k = Math.max(.5, Math.min(1.6, k));
           svg.querySelectorAll('text').forEach(function (t) {
             var x = parseFloat(t.getAttribute('x')) || 0;
             var y = parseFloat(t.getAttribute('y')) || 0;
@@ -3960,14 +4712,12 @@
         gateInput.blur();
         gate.classList.add('leaving');
         setTimeout(function () {
-          gate.remove();
-          startSignInIntro();                    // only now does anything move
+          gate.remove();                         // reveals the inbox beneath
         }, 380);
       }
 
       if (!gate || gateUnlocked()) {
         if (gate) gate.remove();
-        startSignInIntro();
       } else {
         setTimeout(function () { gateInput.focus(); }, 80);
         gateInput.addEventListener('input', function () {
@@ -3978,6 +4728,31 @@
           if (e.key === 'Enter') { e.preventDefault(); tryGate(); }
         });
       }
+
+      // --- Mail inbox: the prototype opens in Michael's inbox; the critical
+      //     email's CTA is what leads to the Adyen sign-in. ---
+      var mailScreen = document.getElementById('mail-screen');
+      var mailListView = document.getElementById('mail-list');
+      var mailReadView = document.getElementById('mail-read');
+      var mailCritRow = document.getElementById('mail-open-critical');
+
+      mailCritRow.addEventListener('click', function () {
+        mailCritRow.classList.remove('unread');
+        mailListView.hidden = true;
+        mailReadView.hidden = false;
+        mailReadView.closest('.mail-main').scrollTop = 0;
+      });
+      document.getElementById('mail-back').addEventListener('click', function () {
+        mailReadView.hidden = true;
+        mailListView.hidden = false;
+      });
+      document.getElementById('mail-cta').addEventListener('click', function () {
+        mailScreen.classList.add('leaving');     // fades to the sign-in screen
+        setTimeout(function () {
+          mailScreen.remove();
+          startSignInIntro();
+        }, 380);
+      });
 
       signInBtn.addEventListener('click', function () {
         // fields clear (250ms), then the navy washes out to the nav colour
