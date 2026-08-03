@@ -1676,6 +1676,8 @@
   .notice-head {
     display: flex; align-items: center; justify-content: space-between;
   }
+  /* fixed so the banner's overflow clip can't cut it off; JS sets top/left */
+  .notice-menu { position: fixed; }
   .notice-overflow {
     width: 28px; height: 28px;
     display: flex; align-items: center; justify-content: center;
@@ -2494,9 +2496,38 @@
   <!-- ============ SLIDE DECK (pre-prototype presentation) ============ -->
   <div class="deck" id="deck">
 
-    <!-- 1 · statement -->
+    <!-- 1 · cover (statement template) -->
     <section class="slide active">
-      <div class="slide-eyebrow">Case study — Adyen Customer Area</div>
+      <div class="slide-eyebrow">Michael Young</div>
+      <h1 class="slide-h1">Case study</h1>
+      <p class="slide-lede">Exploring a redesign of the Customer Area.</p>
+    </section>
+
+    <!-- 2 · the problem (statement + three cards) -->
+    <section class="slide">
+      <div class="slide-eyebrow">The problem</div>
+      <h1 class="slide-h1">Code switching, critical filters, and clarity</h1>
+      <div class="cards3">
+        <div class="deck-card"><h3>Fragmented workflows</h3><p>Workflows span multiple job centers — resolving one issue means stitching together several parts of the product.</p></div>
+        <div class="deck-card"><h3>Navigation built for everyone</h3><p>Complex navigation in an IA built for all personas — so built for no personas.</p></div>
+        <div class="deck-card"><h3>No cohesive comms strategy</h3><p>Notifications, email, and in-product messaging each behave differently, with no shared voice or lifecycle.</p></div>
+      </div>
+    </section>
+
+    <!-- 3 · process (statement + three cards) -->
+    <section class="slide">
+      <div class="slide-eyebrow">Process</div>
+      <h1 class="slide-h1">Falling in love with the problem</h1>
+      <div class="cards3">
+        <div class="deck-card"><h3>Acquire</h3><p>Data and customer insight — grounding the problem in what merchants actually hit.</p></div>
+        <div class="deck-card"><h3>Analyze</h3><p>Industry trends and competitive analysis across the payments and AI landscape.</p></div>
+        <div class="deck-card"><h3>Explore</h3><p>Without constraints, within a two-to-three-year vision.</p></div>
+      </div>
+    </section>
+
+    <!-- 4 · statement -->
+    <section class="slide">
+      <div class="slide-eyebrow">The experience solve</div>
       <h1 class="slide-h1">Orchestration,<br>not conversation.</h1>
       <p class="slide-lede">A redesign of Adyen's Customer Area where the assistant doesn't chat about problems — it resolves them, asks permission once, and turns the fix into a reusable skill.</p>
     </section>
@@ -2570,8 +2601,20 @@
       </div>
     </section>
 
+    <!-- measuring success (2x2 grid) -->
+    <section class="slide">
+      <div class="slide-eyebrow">Measuring success</div>
+      <h1 class="slide-h1">What we'd watch</h1>
+      <div class="grid2x2">
+        <div><h3>Findability</h3><p>Task completion rates and navigation metrics.</p></div>
+        <div><h3>Efficiency</h3><p>Bounce rates, time to benefit, and hover-to-click.</p></div>
+        <div><h3>Adoption</h3><p>Engagement with L0s and customization rates.</p></div>
+        <div><h3>Resolution</h3><p>Engagement with communications and resolution rates compared to baseline.</p></div>
+      </div>
+    </section>
+
     <div class="deck-chrome">
-      <span id="deck-counter">1 / 6</span>
+      <span id="deck-counter"></span>
       <span>&larr; &rarr; slides &nbsp;&middot;&nbsp; W prototype</span>
     </div>
   </div>
@@ -2739,7 +2782,7 @@
       </div>
       <div class="tb-right">
         <span class="tb-icon tip" data-tip="Feedback">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4a1 1 0 01-1-1v-7a1 1 0 011-1h3zm0 0l4-8a2.5 2.5 0 012.5 2.5V8h5a2 2 0 012 2.3l-1.2 7A2 2 0 0117.3 19H7"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
         </span>
         <span class="tb-icon tip tb-bell" data-tip="Notifications" id="bell-toggle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
@@ -2991,7 +3034,26 @@
           <div class="notice-banner">
             <div class="notice-head">
               <div class="card-title">Notifications <span class="notice-badge"><svg viewBox="0 0 24 24" fill="#d1344a" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#fff"/></svg>Critical</span></div>
-              <button class="notice-overflow tip" id="notice-seeall" type="button" data-tip="More notifications"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+              <button class="notice-overflow tip" id="notice-seeall" type="button" data-tip="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+              <div class="ai-menu notice-menu" id="notice-menu" hidden>
+                <button class="ai-menu-item" type="button" data-act="viewall">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  <span>View all</span>
+                </button>
+                <button class="ai-menu-item" type="button" data-act="settings">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                  <span>Notification settings</span>
+                </button>
+                <button class="ai-menu-item" type="button" data-act="feedback">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span>Feedback</span>
+                </button>
+                <div class="ai-menu-sep"></div>
+                <button class="ai-menu-item" type="button" data-act="dismiss">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                  <span>Dismiss</span>
+                </button>
+              </div>
             </div>
             <div class="notice-row">
               <div class="notice-sub">Northwind Retail's $48,000.00 renewal failed due to an expired card. An automatic update request was sent 10 hours ago.</div>
@@ -3362,7 +3424,7 @@
         </aside>
 
         <!-- shared overflow menu for pinned / recent items -->
-        <div class="ai-menu" hidden>
+        <div class="ai-menu" id="ai-side-menu" hidden>
           <button class="ai-menu-item" type="button" data-act="pin">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3l6 6-3.5 1.5-4 4L12 21l-2.5-6.5L3 12l6.5-1.5 4-4z"/></svg>
             <span class="ai-menu-pinlabel">Pin</span>
@@ -3956,6 +4018,7 @@
         if (except !== 'headChats' && aiChatsDrop) aiChatsDrop.classList.remove('open');
         if (except !== 'aiMenu' && aiMenu) closeAiMenu();
         if (except !== 'cardMenu' && cardMenu) closeCardMenu();
+        if (except !== 'noticeMenu' && noticeMenu) noticeMenu.hidden = true;
       }
 
       if (tbNew && createMenu) {
@@ -4707,13 +4770,50 @@
       }
 
       // "See all" opens the panel listing every notification
+      // overflow menu on the critical notification card
       var noticeSeeAll = document.getElementById('notice-seeall');
-      if (noticeSeeAll) {
-        noticeSeeAll.addEventListener('click', function () {
-          openAiPanel();
-          aiChat.innerHTML = '';
-          aiBody.classList.remove('chatting', 'casing', 'artifacting');
-          aiBody.classList.add('noticing');
+      var noticeMenu = document.getElementById('notice-menu');
+      if (noticeSeeAll && noticeMenu) {
+        // reparent to <body>: the entered workarea keeps a transform, which
+        // would hijack this fixed-position menu's containing block
+        document.body.appendChild(noticeMenu);
+        noticeSeeAll.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var opening = noticeMenu.hidden;
+          closeAllFlyouts('noticeMenu');
+          if (opening) {
+            var r = noticeSeeAll.getBoundingClientRect();
+            noticeMenu.style.top = (r.bottom + 6) + 'px';
+            noticeMenu.style.left = (r.right - 178) + 'px';
+          }
+          noticeMenu.hidden = !opening;
+        });
+        // a fixed menu shouldn't float free of the card while scrolling
+        document.querySelector('.canvas').addEventListener('scroll', function () {
+          noticeMenu.hidden = true;
+        });
+        noticeMenu.addEventListener('click', function (e) {
+          var item = e.target.closest('.ai-menu-item');
+          if (!item) return;
+          noticeMenu.hidden = true;
+          if (item.dataset.act === 'viewall') {
+            openAiPanel();
+            aiChat.innerHTML = '';
+            aiBody.classList.remove('chatting', 'casing', 'artifacting');
+            aiBody.classList.add('noticing');
+          } else if (item.dataset.act === 'dismiss') {
+            // banner rolls back up, same motion as resolving it; the bell
+            // item stays — dismissed is not resolved
+            var banner = document.querySelector('.notice-banner');
+            if (banner && !banner.classList.contains('resolved')) {
+              banner.classList.add('resolved');
+              setTimeout(function () { banner.style.display = 'none'; }, 460);
+            }
+          }
+          // settings / feedback are visual endpoints in the prototype
+        });
+        document.addEventListener('click', function (e) {
+          if (!noticeMenu.hidden && !e.target.closest('#notice-menu')) noticeMenu.hidden = true;
         });
       }
 
@@ -4745,7 +4845,10 @@
       if (aiNoteCritical) aiNoteCritical.addEventListener('click', openAiCase);
 
       // --- Pinned / recent overflow menu ---
-      var aiMenu = document.querySelector('.ai-menu');
+      // by id — querySelector('.ai-menu') would grab whichever menu happens
+      // to come first in the DOM (the notice card's, since the canvas
+      // precedes the panel)
+      var aiMenu = document.getElementById('ai-side-menu');
       var aiMenuRow = null;                    // row the menu was opened from
 
       function closeAiMenu() {
@@ -5347,6 +5450,7 @@
         deckSlides.forEach(function (s, n) { s.classList.toggle('active', n === deckIdx); });
         deckCounter.textContent = (deckIdx + 1) + ' / ' + deckSlides.length;
       }
+      showSlide(0);   // seeds the counter for however many slides exist
 
       // W from the deck always lands in the mock Gmail inbox. If the journey
       // has advanced past it, rewind the whole prototype in place — no
