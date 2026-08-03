@@ -543,6 +543,10 @@
   .ai-tb-icon:hover { background: var(--nav-bg-hover); color: #2B3135; }
   .ai-tb-icon:active { background: var(--nav-bg-active); }
   .ai-tb-icon.tip::after { font-size: 10px; padding: 5px 9px; border-radius: 6px; }
+  /* every tooltip inside the panel uses the compact variant */
+  .ai-card .tip::after { font-size: 10px; padding: 5px 9px; border-radius: 6px; }
+  /* right-edge header icon: right-align so the tip stays inside the panel */
+  .ai-head-chats-wrap .tip::after { left: auto; right: 0; transform: none; }
 
   /* ---------- AI CASE FOLLOW-UP RESPONSE ---------- */
   .ai-followup { display: none; flex-direction: column; gap: 16px; margin-top: 18px; }
@@ -586,6 +590,11 @@
      outranks the `.ai-followup-text p` margin reset */
   .ai-followup-text p.ai-followup-offer { margin: 12px 0 0; }
 
+  /* "which should we tackle" prompt between the attention cards and options */
+  #ai-attn-cards .ai-step-label { margin-top: 16px; }
+  /* two cards + prompt + options outgrow the default 640px rollup cap */
+  #ai-attn-cards.cards-in { max-height: 900px; }
+
   /* drafted follow-up email, presented as a card with a copy affordance */
   .ai-email-card {
     position: relative;
@@ -615,21 +624,30 @@
     margin-top: 6px;
   }
   .ai-info-card + .ai-info-card { margin-top: 10px; }
+  /* title row: white, sentence case, weighted like the row values */
   .ai-info-head {
     display: flex; align-items: center; gap: 8px;
-    padding: 11px 14px;
-    background: #f7f9fc; border-bottom: 1px solid #D5DEE3;
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: .5px; color: #727E85;
+    padding: 8px 8px 8px 14px;
+    background: #fff; border-bottom: 1px solid #D5DEE3;
+    font-size: 13px; font-weight: 500; color: #2B3135;
   }
-  .ai-info-head svg { width: 15px; height: 15px; color: #1f5fe0; }
+  .ai-status-badge svg { width: 10px; height: 10px; }
+  .ai-card-more {
+    margin-left: auto; flex-shrink: 0;
+    width: 26px; height: 26px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    border: 0; background: none; color: #727E85; cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .ai-card-more:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-card-more svg { width: 15px; height: 15px; }
   .ai-info-body { padding: 12px 14px; }
   .ai-info-row {
     display: flex; justify-content: space-between; align-items: baseline;
     padding: 5px 0; font-size: 13px;
   }
   .ai-info-row span:first-child { color: #727E85; }
-  .ai-info-row span:last-child { color: #2B3135; font-weight: 500; }
+  .ai-info-row span:last-child { color: #2B3135; font-weight: 500; text-align: right; }
   .ai-info-row a { color: #1f5fe0; text-decoration: none; }
   .ai-info-row a:hover { text-decoration: underline; }
   .ai-info-row span.code { color: #d1344a; font-weight: 600; }
@@ -660,6 +678,17 @@
     font-size: 11.5px; font-weight: 600;
   }
   .ai-status-badge.paused { background: #fff3e0; color: #e65100; }
+  .ai-status-badge.skill { background: #e7f8ef; color: #0a9648; }
+
+  /* the saved automation, confirmed under the "Got it" reply */
+  .ai-skill-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    background: #fff; border: 1px solid #D5DEE3; border-radius: 12px;
+    padding: 12px 14px; margin-top: 6px;
+    font-size: 13px; font-weight: 400; color: #2B3135;
+  }
+  .ai-skill-name { display: flex; align-items: center; gap: 9px; }
+  .ai-skill-name svg { width: 16px; height: 16px; flex-shrink: 0; }
   .ai-tb-time {
     font-size: 11.5px; color: #b0b8c9;
     margin-left: 4px;
@@ -2112,8 +2141,8 @@
   .mail-email-kv-row span:first-child { font-weight: 700; color: #1f1f1f; }
   .mail-email-kv-row span:last-child { color: #3c4043; }
   .mail-cta {
-    display: inline-block;
-    margin: 6px 0 10px;
+    display: block;
+    margin: 6px auto 10px;   /* centred in the email card */
     padding: 13px 26px;
     border: 0; border-radius: 8px;
     background: var(--green); color: #fff;
@@ -2458,7 +2487,7 @@
                 <div class="mail-email-kv-row"><span>Next retry</span><span>In 2 days · will fail again</span></div>
               </div>
               <p class="mail-email-p">Review the transaction in your Customer Area to resolve it before the retry window closes.</p>
-              <button class="mail-cta" id="mail-cta" type="button">Review in Customer Area</button>
+              <button class="mail-cta" id="mail-cta" type="button">Sign in to review</button>
               <div class="mail-email-foot">You're receiving this email because critical notifications are enabled for your Adyen Customer Area. Manage your notification preferences in Settings.</div>
             </div>
           </div>
@@ -2577,7 +2606,7 @@
           </svg>
         </div>
         <span class="org-name">Rad Co.</span>
-        <span class="org-switch" title="Switch account">
+        <span class="org-switch tip" data-tip="Switch account">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 9 12 5 16 9"/><polyline points="8 15 12 19 16 15"/></svg>
         </span>
       </div>
@@ -2744,7 +2773,7 @@
           <div class="notice-banner">
             <div class="notice-head">
               <div class="card-title">Notifications <span class="notice-badge"><svg viewBox="0 0 24 24" fill="#d1344a" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"/><rect x="11" y="7" width="2" height="6" rx="1" fill="#fff"/><rect x="11" y="15" width="2" height="2" rx="1" fill="#fff"/></svg>Critical</span></div>
-              <button class="notice-overflow" id="notice-seeall" type="button" title="More notifications"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
+              <button class="notice-overflow tip" id="notice-seeall" type="button" data-tip="More notifications"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg></button>
             </div>
             <div class="notice-row">
               <div class="notice-sub">Northwind Retail's $48,000.00 renewal failed due to an expired card. An automatic update request was sent 10 hours ago.</div>
@@ -2919,17 +2948,17 @@
           <header class="page-header">
             <h1 class="page-title">Payment lifecycle</h1>
             <div class="page-actions">
-              <button class="pa-btn icon-only" title="Download">
+              <button class="pa-btn icon-only tip" data-tip="Download">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M4 20h16"/></svg>
               </button>
-              <button class="pa-btn icon-only" title="Share">
+              <button class="pa-btn icon-only tip" data-tip="Share">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="6" r="2.6"/><circle cx="18" cy="18" r="2.6"/><line x1="8.3" y1="10.8" x2="15.7" y2="7.2"/><line x1="8.3" y1="13.2" x2="15.7" y2="16.8"/></svg>
               </button>
-              <button class="pa-btn" title="Learn more">
+              <button class="pa-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16.5"/><path d="M12 7.8h.01"/></svg>
                 <span>Learn more</span>
               </button>
-              <button class="pa-btn" title="Settings">
+              <button class="pa-btn">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
                 <span>Settings</span>
               </button>
@@ -3139,9 +3168,21 @@
           </button>
         </div>
 
+        <!-- shared overflow menu for the case info cards -->
+        <div class="ai-menu" id="ai-card-menu" hidden>
+          <button class="ai-menu-item" type="button" data-act="copy">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+            <span>Copy</span>
+          </button>
+          <button class="ai-menu-item" type="button" data-act="details">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span>View details</span>
+          </button>
+        </div>
+
         <div class="ai-content">
         <header class="ai-head">
-          <button class="ai-icon-btn ai-expand" type="button" title="Expand to full screen">
+          <button class="ai-icon-btn ai-expand tip" type="button" data-tip="Expand to full screen">
             <!-- companion mode: expand (two diagonal arrows to opposite corners) -->
             <svg class="ico-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="14 4 20 4 20 10"/><polyline points="10 20 4 20 4 14"/><line x1="20" y1="4" x2="13.5" y2="10.5"/><line x1="4" y1="20" x2="10.5" y2="13.5"/></svg>
             <!-- full screen: minimize (two diagonal arrows toward the centre) -->
@@ -3151,7 +3192,7 @@
 
           <!-- companion-only: menu where the title sits in full screen -->
           <span class="ai-head-menu-wrap">
-            <button class="ai-icon-btn" id="ai-menu-btn" type="button" title="Menu">
+            <button class="ai-icon-btn tip" id="ai-menu-btn" type="button" data-tip="Menu">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
             </button>
             <div class="ai-head-drop" id="ai-menu-drop">
@@ -3177,7 +3218,7 @@
           <div class="ai-head-actions">
             <!-- companion-only: pinned + recent chats -->
             <span class="ai-head-chats-wrap">
-              <button class="ai-icon-btn" id="ai-chats-btn" type="button" title="Chats">
+              <button class="ai-icon-btn tip" id="ai-chats-btn" type="button" data-tip="Chats">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
               <div class="ai-head-drop right" id="ai-chats-drop">
@@ -3279,10 +3320,16 @@
           <!-- pre-seeded case: opens already knowing what happened -->
           <div class="ai-case">
             <div class="ai-step">
+              <div class="ai-step-label">What happened</div>
+              <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal failed because their card expired.</div>
+              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before. An automatic email was sent to their billing contact 10 hours ago.</div>
+            </div>
+
+            <div class="ai-step">
               <div class="ai-info-card">
                 <div class="ai-info-head">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
                   Transaction
+                  <button class="ai-card-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
                 </div>
                 <div class="ai-info-body">
                   <div class="ai-info-row"><span>Customer</span><span>Northwind Retail</span></div>
@@ -3293,12 +3340,6 @@
                   <div class="ai-info-row"><span>Next retry</span><span>In 2 days · will fail again</span></div>
                 </div>
               </div>
-            </div>
-
-            <div class="ai-step">
-              <div class="ai-step-label">What happened</div>
-              <div class="ai-step-title">Northwind Retail's $48,000.00 annual renewal failed because their card expired.</div>
-              <div class="ai-step-body">Everything else on the account is current and they haven't missed a renewal before. An automatic email was sent to their billing contact 10 hours ago.</div>
             </div>
 
             <div class="ai-step" id="ai-step-options">
@@ -3346,9 +3387,12 @@
                   <div class="ai-followup-cards" id="ai-followup-cards">
                   <div class="ai-info-card">
                     <div class="ai-info-head">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="9"/><line x1="14" y1="15" x2="14" y2="9"/></svg>
                       Payment retry
-                      <span class="ai-status-badge paused">Paused</span>
+                      <span class="ai-status-badge paused">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="9" y1="6.5" x2="9" y2="17.5"/><line x1="15" y1="6.5" x2="15" y2="17.5"/></svg>
+                        Paused
+                      </span>
+                      <button class="ai-card-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
                     </div>
                     <div class="ai-info-body">
                       <div class="ai-info-row"><span>Status</span><span>Automatic retries paused</span></div>
@@ -3365,8 +3409,8 @@
 
                   <div class="ai-info-card">
                     <div class="ai-info-head">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                       Billing contact
+                      <button class="ai-card-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
                     </div>
                     <div class="ai-info-body">
                       <div class="ai-info-row"><span>Name</span><span>Sarah Chen</span></div>
@@ -3392,7 +3436,7 @@
 
                   <div class="ai-followup-cards" id="ai-email-cards">
                     <div class="ai-email-card">
-                      <button class="ai-email-copy" id="ai-email-copy" type="button" title="Copy email">
+                      <button class="ai-email-copy tip" id="ai-email-copy" type="button" data-tip="Copy email">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
                       </button>
                       <p class="ai-email-sub">Subject: Card update needed to renew subscription</p>
@@ -3419,14 +3463,110 @@
                   <div class="ai-followup-cards" id="ai-sent-cards">
                     <div class="ai-info-card">
                       <div class="ai-info-head">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                         Email sent
+                        <button class="ai-card-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
                       </div>
                       <div class="ai-info-body">
                         <div class="ai-info-row"><span>To</span><span>Sarah Chen · s.chen@northwindretail.com</span></div>
                         <div class="ai-info-row"><span>Subject</span><span>Card update needed to renew subscription</span></div>
                         <div class="ai-info-row"><span>Sent</span><span>Just now</span></div>
                         <div class="ai-info-row"><span>Status</span><span class="sent-ok">Delivered</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="ai-followup-cards" id="ai-policy-cards">
+                    <p class="ai-followup-offer">Great, I sent it. Next time a customer has a card expiration renewal failure want me to send the same email?</p>
+                    <div class="ai-actions">
+                      <button class="ai-action" type="button">
+                        <kbd class="ai-key">⌘1</kbd>
+                        Allow always, don't ask again
+                      </button>
+                      <button class="ai-action" type="button">
+                        <kbd class="ai-key">⌘2</kbd>
+                        Yes, but ask
+                      </button>
+                      <button class="ai-action" type="button">
+                        <kbd class="ai-key">⌘3</kbd>
+                        No, notify me every time
+                      </button>
+                      <div class="ai-action ai-action-other">
+                        <div class="ai-action-other-label">Other</div>
+                        <input class="ai-action-other-input" id="ai-policy-other" type="text" placeholder="Tell me what to do" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-case-ask" id="ai-policy-ask"></div>
+
+            <div class="ai-followup" id="ai-policy-followup">
+              <div class="ai-followup-msg">
+                <div class="ai-followup-text">
+                  <p>Got it. Next time there is a renewal issue due to an expired card I'll email them after the automatic reply with update link just to make sure they resolve this quickly.</p>
+
+                  <div class="ai-followup-cards" id="ai-skill-cards">
+                    <div class="ai-skill-row">
+                      <span class="ai-skill-name">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
+                        Expired card on renewal
+                      </span>
+                      <span class="ai-status-badge skill">New skill created</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-case-ask" id="ai-attn-ask"></div>
+
+            <div class="ai-followup" id="ai-attn-followup">
+              <div class="ai-followup-msg">
+                <div class="ai-followup-text">
+                  <p>Two more things are worth a look right now.</p>
+
+                  <div class="ai-followup-cards" id="ai-attn-cards">
+                    <div class="ai-info-card">
+                      <div class="ai-info-head">
+                        Chargeback spike
+                        <button class="ai-card-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+                      </div>
+                      <div class="ai-info-body">
+                        <div class="ai-info-row"><span>Signal</span><span>14 chargebacks in the last 24 hours</span></div>
+                        <div class="ai-info-row"><span>Typical</span><span>2–3 per day</span></div>
+                        <div class="ai-info-row"><span>Concentration</span><span>One card range · single issuer</span></div>
+                        <div class="ai-info-row"><span>Value at risk</span><span>$6,180.00</span></div>
+                      </div>
+                    </div>
+
+                    <div class="ai-info-card">
+                      <div class="ai-info-head">
+                        API latency
+                        <button class="ai-card-more" type="button" aria-label="More actions"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg></button>
+                      </div>
+                      <div class="ai-info-body">
+                        <div class="ai-info-row"><span>Signal</span><span>Average response above 500ms</span></div>
+                        <div class="ai-info-row"><span>Threshold</span><span>300ms</span></div>
+                        <div class="ai-info-row"><span>Started</span><span>Today, 06:40 CET</span></div>
+                        <div class="ai-info-row"><span>Impact</span><span>Slower checkout · conversion dip</span></div>
+                      </div>
+                    </div>
+
+                    <div class="ai-step-label">Which should we tackle first?</div>
+                    <div class="ai-actions">
+                      <button class="ai-action" type="button">
+                        <kbd class="ai-key">⌘1</kbd>
+                        Dig into the chargeback spike
+                      </button>
+                      <button class="ai-action" type="button">
+                        <kbd class="ai-key">⌘2</kbd>
+                        Investigate the API latency
+                      </button>
+                      <div class="ai-action ai-action-other">
+                        <div class="ai-action-other-label">Other</div>
+                        <input class="ai-action-other-input" type="text" placeholder="Tell me what to do" />
                       </div>
                     </div>
                   </div>
@@ -3458,22 +3598,22 @@
           <div class="ai-input-clip"><div class="ai-footer-inner">
           <form class="ai-input" onsubmit="return false">
             <input type="text" placeholder="Type / for commands" aria-label="Type / for commands" />
-            <button class="ai-send-btn" id="ai-send-btn" type="button" title="Stop">
+            <button class="ai-send-btn tip" id="ai-send-btn" type="button" data-tip="Stop">
               <svg class="ico-stop" viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="1.5"/></svg>
               <svg class="ico-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>
             </button>
           </form>
           <div class="ai-composer-meta">
             <div class="acm-left">
-              <button class="ai-input-btn" type="button" title="Add context">
+              <button class="ai-input-btn tip" type="button" data-tip="Add context">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
-              <button class="ai-input-btn" type="button" title="Voice input">
+              <button class="ai-input-btn tip" type="button" data-tip="Voice input">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0012 0"/><line x1="12" y1="18" x2="12" y2="21"/></svg>
               </button>
             </div>
             <div class="acm-right">
-              <button class="ai-model-btn" type="button" title="Model">
+              <button class="ai-model-btn tip" type="button" data-tip="Model">
                 adyen-i2
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
@@ -3585,9 +3725,25 @@
       // --- "New" in the global bar: click toggles its create menu ---
       var tbNew = document.getElementById('tb-new');
       var createMenu = document.getElementById('create-menu');
+
+      // Only one chrome flyout open at a time: every opener calls this first,
+      // passing its own key so it survives the sweep.
+      function closeAllFlyouts(except) {
+        if (except !== 'create' && createMenu) createMenu.classList.remove('open');
+        if (except !== 'bell' && bellDrop) {
+          bellDrop.classList.remove('open');
+          bellToggle.classList.remove('bell-open');
+        }
+        if (except !== 'headMenu' && aiMenuDrop) aiMenuDrop.classList.remove('open');
+        if (except !== 'headChats' && aiChatsDrop) aiChatsDrop.classList.remove('open');
+        if (except !== 'aiMenu' && aiMenu) closeAiMenu();
+        if (except !== 'cardMenu' && cardMenu) closeCardMenu();
+      }
+
       if (tbNew && createMenu) {
         tbNew.addEventListener('click', function (e) {
           e.stopPropagation();
+          closeAllFlyouts('create');
           createMenu.classList.toggle('open');
         });
         document.addEventListener('click', function (e) {
@@ -3889,6 +4045,7 @@
       if (bellToggle && bellDrop) {
         bellToggle.addEventListener('click', function (e) {
           if (e.target.closest('.bell-drop')) return;
+          closeAllFlyouts('bell');
           var opening = !bellDrop.classList.contains('open');
           bellDrop.classList.toggle('open');
           bellToggle.classList.toggle('bell-open', opening);
@@ -3962,10 +4119,25 @@
       var aiEmailCards = document.getElementById('ai-email-cards');
       // stage 3: sending the email, armed once the draft is presented
       var aiSentArmed = false;
-      var aiSentT1 = null, aiSentT2 = null;
+      var aiSentT1 = null, aiSentT2 = null, aiSentT3 = null;
       var aiSentAsk = document.getElementById('ai-sent-ask');
       var aiSentFollowup = document.getElementById('ai-sent-followup');
       var aiSentCards = document.getElementById('ai-sent-cards');
+      // stage 3.5: the automation ask ("send this email next time?"),
+      // armed once the sent confirmation lands
+      var aiPolicyArmed = false;
+      var aiPolicyT1 = null, aiPolicyT2 = null;
+      var aiPolicyAsk = document.getElementById('ai-policy-ask');
+      var aiPolicyFollowup = document.getElementById('ai-policy-followup');
+      var aiPolicyCards = document.getElementById('ai-policy-cards');
+      var aiSkillCards = document.getElementById('ai-skill-cards');
+      var aiPolicyOther = document.getElementById('ai-policy-other');
+      // stage 4: "what else needs my attention", armed once the automation ask is answered
+      var aiAttnArmed = false;
+      var aiAttnT1 = null, aiAttnT2 = null;
+      var aiAttnAsk = document.getElementById('ai-attn-ask');
+      var aiAttnFollowup = document.getElementById('ai-attn-followup');
+      var aiAttnCards = document.getElementById('ai-attn-cards');
 
       function openAiCase() {
         openAiPanel();
@@ -3986,12 +4158,29 @@
         aiSentCards.classList.remove('cards-in');
         aiSentAsk.classList.remove('visible');
         aiSentAsk.innerHTML = '';
+        aiPolicyArmed = false;
+        aiPolicyFollowup.classList.remove('visible');
+        aiPolicyCards.classList.remove('cards-in');
+        aiSkillCards.classList.remove('cards-in');
+        aiPolicyAsk.classList.remove('visible');
+        aiPolicyAsk.innerHTML = '';
+        if (aiPolicyOther) aiPolicyOther.value = '';
+        aiAttnArmed = false;
+        aiAttnFollowup.classList.remove('visible');
+        aiAttnCards.classList.remove('cards-in');
+        aiAttnAsk.classList.remove('visible');
+        aiAttnAsk.innerHTML = '';
         clearTimeout(aiFollowupTimeout);
         clearTimeout(aiStatusTimeout);
         clearTimeout(aiEmailT1);
         clearTimeout(aiEmailT2);
         clearTimeout(aiSentT1);
         clearTimeout(aiSentT2);
+        clearTimeout(aiSentT3);
+        clearTimeout(aiPolicyT1);
+        clearTimeout(aiPolicyT2);
+        clearTimeout(aiAttnT1);
+        clearTimeout(aiAttnT2);
         var steps = document.querySelectorAll('.ai-case .ai-step');
         steps.forEach(function (s) { s.classList.remove('step-in'); });
         var delays = [100, 1100, 2100, 3100];
@@ -4005,19 +4194,13 @@
         startAiThinking();
       }
 
-      // "Other" input triggers options 1+3 follow-up
-      if (aiOtherInput) {
-        aiOtherInput.addEventListener('keydown', function (e) {
-          if (e.key === 'Enter' && aiOtherInput.value.trim()) {
-            e.preventDefault();
-            // echo what was typed as the user's own message, then retire the
-            // options list — the choice has been made.
-            var asked = aiOtherInput.value.trim();
+      // First answer in the case — reachable from the "Other" field or the
+      // chat bar alike: echo it as the user's message, then retire the
+      // options list — the choice has been made.
+      function runCaseIntake(asked) {
             aiCaseAsk.innerHTML = '<span></span>';
             aiCaseAsk.querySelector('span').textContent = asked;
             aiCaseAsk.classList.add('visible');
-            aiOtherInput.value = '';
-            aiOtherInput.blur();
             aiStepOptions.classList.remove('step-in');
             resolveNotice();                     // the issue is being handled
             pinAiBottom(600);
@@ -4063,6 +4246,16 @@
               clearInterval(aiThinkInterval);
               aiThinking.classList.add('done');
             }, 9500);
+      }
+
+      if (aiOtherInput) {
+        aiOtherInput.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && aiOtherInput.value.trim()) {
+            e.preventDefault();
+            var asked = aiOtherInput.value.trim();
+            aiOtherInput.value = '';
+            aiOtherInput.blur();
+            runCaseIntake(asked);
           }
         });
       }
@@ -4141,10 +4334,108 @@
           aiSentCards.classList.add('cards-in');
           pinAiBottom(750);
         }, 6000);
+        // a beat after the confirmation: ask whether to automate this
+        aiSentT3 = setTimeout(function () {
+          aiPolicyCards.classList.add('cards-in');
+          aiPolicyArmed = true;
+          pinAiBottom(750);
+        }, 7400);
         aiThinkTimeout = setTimeout(function () {
           clearInterval(aiThinkInterval);
           aiThinking.classList.add('done');
         }, 6500);
+      }
+
+      // answering the automation ask ("1"): think 7s, confirm, then reveal
+      // the saved skill — and only then is "what else?" on the table.
+      function runPolicyFlow(text) {
+        aiPolicyArmed = false;
+        aiPolicyAsk.innerHTML = '<span></span>';
+        aiPolicyAsk.querySelector('span').textContent = text;
+        aiPolicyAsk.classList.add('visible');
+        pinAiBottom(600);
+        aiThinking.querySelectorAll('.petal').forEach(function (p) {
+          p.style.animation = 'none';
+          void p.offsetWidth;
+          p.style.animation = '';
+          p.style.animationIterationCount = '2';
+        });
+        aiThinking.classList.remove('done');
+        clearInterval(aiThinkInterval);
+        clearTimeout(aiThinkTimeout);
+        var start = Date.now();
+        aiThinkingTimer.textContent = '0s';
+        aiThinkInterval = setInterval(function () {
+          var total = Math.floor((Date.now() - start) / 1000);
+          var m = Math.floor(total / 60);
+          var s = total % 60;
+          aiThinkingTimer.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+        }, 1000);
+        aiPolicyT1 = setTimeout(function () {
+          aiPolicyFollowup.classList.add('visible');
+          pinAiBottom(500);
+        }, 7000);
+        aiPolicyT2 = setTimeout(function () {
+          aiSkillCards.classList.add('cards-in');
+          aiAttnArmed = true;                    // "what else?" is next
+          pinAiBottom(750);
+        }, 8200);
+        aiThinkTimeout = setTimeout(function () {
+          clearInterval(aiThinkInterval);
+          aiThinking.classList.add('done');
+        }, 7500);
+      }
+
+      // "what else needs my attention": surface the two remaining
+      // notifications as cards and ask which to tackle first.
+      function runAttnFlow(text) {
+        aiAttnArmed = false;
+        aiAttnAsk.innerHTML = '<span></span>';
+        aiAttnAsk.querySelector('span').textContent = text;
+        aiAttnAsk.classList.add('visible');
+        pinAiBottom(600);
+        aiThinking.querySelectorAll('.petal').forEach(function (p) {
+          p.style.animation = 'none';
+          void p.offsetWidth;
+          p.style.animation = '';
+          p.style.animationIterationCount = '2';
+        });
+        aiThinking.classList.remove('done');
+        clearInterval(aiThinkInterval);
+        clearTimeout(aiThinkTimeout);
+        var start = Date.now();
+        aiThinkingTimer.textContent = '0s';
+        aiThinkInterval = setInterval(function () {
+          var total = Math.floor((Date.now() - start) / 1000);
+          var m = Math.floor(total / 60);
+          var s = total % 60;
+          aiThinkingTimer.textContent = m > 0 ? m + 'm' + s + 's' : s + 's';
+        }, 1000);
+        aiAttnT1 = setTimeout(function () {
+          aiAttnFollowup.classList.add('visible');
+          pinAiBottom(500);
+        }, 2000);
+        aiAttnT2 = setTimeout(function () {
+          aiAttnCards.classList.add('cards-in');
+          pinAiBottom(750);
+        }, 4000);
+        aiThinkTimeout = setTimeout(function () {
+          clearInterval(aiThinkInterval);
+          aiThinking.classList.add('done');
+        }, 4500);
+      }
+
+      // the automation ask's "Other" field routes into the same flow
+      if (aiPolicyOther) {
+        aiPolicyOther.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' && aiPolicyOther.value.trim()) {
+            e.preventDefault();
+            var v = aiPolicyOther.value.trim();
+            aiPolicyOther.value = '';
+            aiPolicyOther.blur();
+            runPolicyFlow(v);
+          }
+        });
       }
 
       // copy icon on the drafted email
@@ -4251,12 +4542,13 @@
         });
       });
 
-      document.querySelectorAll('.ai-side-more').forEach(function (btn) {
+      // named so rows added at runtime (new chats) can be wired the same way
+      function bindSideMore(btn) {
         btn.addEventListener('click', function (e) {
           e.stopPropagation();
           var row = btn.closest('.ai-side-item');
           if (aiMenuRow === row) { closeAiMenu(); return; }
-          closeAiMenu();
+          closeAllFlyouts('aiMenu');
           aiMenuRow = row;
           btn.classList.add('open');
 
@@ -4271,7 +4563,8 @@
           aiMenu.style.top = (r.bottom - card.top + 6) + 'px';
           aiMenu.style.left = (r.left - card.left - 150) + 'px';
         });
-      });
+      }
+      document.querySelectorAll('.ai-side-more').forEach(bindSideMore);
 
       aiMenu.addEventListener('click', function (e) {
         var item = e.target.closest('.ai-menu-item');
@@ -4292,13 +4585,91 @@
         if (!aiMenu.hidden && !e.target.closest('.ai-menu')) closeAiMenu();
       });
 
+      // --- Overflow menus on the case info cards (Copy / View details) ---
+      var cardMenu = document.getElementById('ai-card-menu');
+      var cardMenuCard = null;                   // card the menu was opened from
+
+      function closeCardMenu() {
+        cardMenu.hidden = true;
+        cardMenuCard = null;
+      }
+
+      document.querySelectorAll('.ai-card-more').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var card = btn.closest('.ai-info-card');
+          if (cardMenuCard === card) { closeCardMenu(); return; }
+          closeAllFlyouts('cardMenu');
+          cardMenuCard = card;
+          // position under the dots, right-aligned to them, inside the card
+          var host = document.querySelector('.ai-card').getBoundingClientRect();
+          var r = btn.getBoundingClientRect();
+          cardMenu.hidden = false;
+          cardMenu.style.top = (r.bottom - host.top + 6) + 'px';
+          cardMenu.style.left = (r.right - host.left - 178) + 'px';
+        });
+      });
+
+      cardMenu.addEventListener('click', function (e) {
+        var item = e.target.closest('.ai-menu-item');
+        if (!item || !cardMenuCard) return;
+        if (item.dataset.act === 'copy') {
+          var text = Array.prototype.map.call(
+            cardMenuCard.querySelectorAll('.ai-info-row'),
+            function (row) {
+              var s = row.querySelectorAll('span');
+              return s[0].textContent + ': ' + s[1].textContent;
+            }
+          ).join('\n');
+          try { navigator.clipboard.writeText(text); } catch (err) {}
+        }
+        closeCardMenu();
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!cardMenu.hidden && !e.target.closest('#ai-card-menu')) closeCardMenu();
+      });
+
       // --- AI panel mock chat ---
       var aiBody = document.querySelector('.ai-body');
       var aiChat = document.querySelector('.ai-chat');
       var aiField = document.querySelector('.ai-input input');
       var genericReply = "I'm looking at your live Adyen data now. Everything is tracking in line with the last 30 days and nothing is flagged. Ask me to dig into a specific metric — auth rate, refusals, chargebacks, or a payment method — for a detailed breakdown.";
 
+      // A fresh conversation lands at the top of Recents, titled with what
+      // the user typed — in both the full-screen rail and the chats dropdown.
+      function addRecentChat(title) {
+        var railRecents = document.querySelector('.ai-side-group[data-section="recents"]');
+        if (railRecents) {
+          var item = document.createElement('div');
+          item.className = 'ai-side-item sub';
+          var span = document.createElement('span');
+          span.textContent = title;
+          item.appendChild(span);
+          var more = document.createElement('button');
+          more.className = 'ai-side-more';
+          more.type = 'button';
+          more.setAttribute('aria-label', 'More actions');
+          more.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></svg>';
+          item.appendChild(more);
+          bindSideMore(more);
+          railRecents.insertBefore(item, railRecents.firstChild);
+        }
+        if (aiChatsDrop && addAhdPin) {
+          var label = aiChatsDrop.querySelectorAll('.ahd-label')[1];
+          var row = document.createElement('button');
+          row.className = 'ahd-row chat';
+          row.type = 'button';
+          var s = document.createElement('span');
+          s.textContent = title;
+          row.appendChild(s);
+          aiChatsDrop.insertBefore(row, label.nextSibling);
+          addAhdPin(row);
+        }
+      }
+
       function aiSend(query, response) {
+        var isNewChat = !aiBody.classList.contains('chatting');
         var u = document.createElement('div');
         u.className = 'ai-msg-user';
         u.textContent = query;
@@ -4311,6 +4682,7 @@
         aiBody.classList.remove('casing', 'noticing', 'artifacting');
         aiBody.classList.add('chatting');
         aiBody.scrollTop = aiBody.scrollHeight;
+        if (isNewChat) addRecentChat(query);
       }
 
       document.querySelectorAll('.ai-sugg').forEach(function (s) {
@@ -4324,18 +4696,23 @@
       function syncSendBtn() {
         var typing = !!(aiField && aiField.value.trim());
         if (aiForm) aiForm.classList.toggle('typing', typing);
-        if (aiSendBtn) aiSendBtn.setAttribute('title', typing ? 'Send' : 'Stop');
+        if (aiSendBtn) aiSendBtn.setAttribute('data-tip', typing ? 'Send' : 'Stop');
       }
       function submitAiField() {
         if (!aiField.value.trim()) return;
-        // mid-case with the email offer up, the chat bar continues the case
-        // instead of starting a generic chat
-        if (aiSentArmed && aiBody.classList.contains('casing')) {
-          runSentFlow(aiField.value.trim());
-        } else if (aiEmailArmed && aiBody.classList.contains('casing')) {
-          runEmailFlow(aiField.value.trim());
+        var text = aiField.value.trim();
+        // Mid-case the chat bar ALWAYS continues the flow — it routes to
+        // whichever step is waiting, and never falls through to a generic
+        // chat that would wipe the case.
+        if (aiBody.classList.contains('casing')) {
+          if (aiAttnArmed) runAttnFlow(text);
+          else if (aiPolicyArmed) runPolicyFlow(text);
+          else if (aiSentArmed) runSentFlow(text);
+          else if (aiEmailArmed) runEmailFlow(text);
+          else if (aiStepOptions.classList.contains('step-in')) runCaseIntake(text);
+          else return;   // thinking between steps: hold the text, don't send
         } else {
-          aiSend(aiField.value.trim(), genericReply);
+          aiSend(text, genericReply);
         }
         aiField.value = '';
         syncSendBtn();
@@ -4357,6 +4734,7 @@
       var aiChatsBtn = document.getElementById('ai-chats-btn');
       var aiChatsDrop = document.getElementById('ai-chats-drop');
       var aiChatsSearch = document.getElementById('ai-chats-search');
+      var addAhdPin = null;   // assigned once the dropdown's pin logic exists
 
       function closeHeadDrops() {
         if (aiMenuDrop) aiMenuDrop.classList.remove('open');
@@ -4365,12 +4743,12 @@
       if (aiMenuBtn) {
         aiMenuBtn.addEventListener('click', function (e) {
           e.stopPropagation();
-          aiChatsDrop.classList.remove('open');
+          closeAllFlyouts('headMenu');
           aiMenuDrop.classList.toggle('open');
         });
         aiChatsBtn.addEventListener('click', function (e) {
           e.stopPropagation();
-          aiMenuDrop.classList.remove('open');
+          closeAllFlyouts('headChats');
           aiChatsDrop.classList.toggle('open');
         });
         document.addEventListener('click', function (e) {
@@ -4404,26 +4782,28 @@
           });
         });
 
-        // hover pins move a chat between the Pinned and Recents sections
+        // hover pins move a chat between the Pinned and Recents sections;
+        // assigned to the outer var so runtime-added chat rows get pins too
         var ahdRecentsLabel = aiChatsDrop.querySelectorAll('.ahd-label')[1];
-        aiChatsDrop.querySelectorAll('.ahd-row.chat').forEach(function (row) {
+        addAhdPin = function (row) {
           var pin = document.createElement('button');
-          pin.className = 'ahd-pin';
+          pin.className = 'ahd-pin tip';
           pin.type = 'button';
           pin.innerHTML = pinSVG;   // same thumbtack as the nav's section pins
           if (row.compareDocumentPosition(ahdRecentsLabel) & Node.DOCUMENT_POSITION_FOLLOWING) {
             row.classList.add('pinned');
           }
-          pin.title = row.classList.contains('pinned') ? 'Unpin' : 'Pin';
+          pin.setAttribute('data-tip', row.classList.contains('pinned') ? 'Unpin' : 'Pin');
           row.appendChild(pin);
           pin.addEventListener('click', function (e) {
             e.stopPropagation();                       // pin, don't open the chat
             var pinned = row.classList.toggle('pinned');
-            pin.title = pinned ? 'Unpin' : 'Pin';
+            pin.setAttribute('data-tip', pinned ? 'Unpin' : 'Pin');
             if (pinned) aiChatsDrop.insertBefore(row, ahdRecentsLabel);
             else aiChatsDrop.insertBefore(row, ahdRecentsLabel.nextSibling);
           });
-        });
+        };
+        aiChatsDrop.querySelectorAll('.ahd-row.chat').forEach(addAhdPin);
       }
 
       // Placeholder widgets: 3 across x 6 rows
