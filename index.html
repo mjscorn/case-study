@@ -547,6 +547,9 @@
   .ai-card .tip::after { font-size: 10px; padding: 5px 9px; border-radius: 6px; }
   /* right-edge header icon: right-align so the tip stays inside the panel */
   .ai-head-chats-wrap .tip::after { left: auto; right: 0; transform: none; }
+  /* email copy icon hugs the card's right edge — right-align its tip so the
+     rollup container's overflow:hidden can't crop it */
+  .ai-email-card .ai-email-copy.tip::after { left: auto; right: 0; transform: none; }
 
   /* ---------- AI CASE FOLLOW-UP RESPONSE ---------- */
   .ai-followup { display: none; flex-direction: column; gap: 16px; margin-top: 18px; }
@@ -607,7 +610,8 @@
   .ai-email-sub { font-weight: 600; margin: 0 0 12px; }
   .ai-email-card p { margin: 0 0 10px; }
   .ai-email-card p:last-child { margin-bottom: 0; }
-  .ai-email-copy {
+  /* .ai-email-card qualifier outranks the later `.tip { position: relative }` */
+  .ai-email-card .ai-email-copy {
     position: absolute; top: 8px; right: 8px;
     width: 28px; height: 28px; border-radius: 7px;
     display: flex; align-items: center; justify-content: center;
@@ -1975,7 +1979,128 @@
   /* ---------- PASSCODE GATE ----------
      Sits above the sign-in screen and holds its entrance back until the scrim
      has fully cleared. Client-side only — a deterrent, not real security. */
-  /* ---------- MAIL INBOX (prototype opening scene) ----------
+  /* ---------- SLIDE DECK (pre-prototype presentation) ----------
+     Toggled with W: deck <-> prototype, keeping your slide. Arrow keys move
+     between slides. Sits above every prototype screen, under the gate. */
+  .deck {
+    position: fixed; inset: 0; z-index: 260;
+    background: #26333A;
+    color: #F2EFE9;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    transition: opacity .3s ease;
+  }
+  .deck.hidden { opacity: 0; pointer-events: none; }
+  .slide {
+    display: none;
+    position: absolute; inset: 0;
+    padding: 9vh 7vw;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .slide.active { display: flex; }
+  .slide-eyebrow {
+    font-size: 15px; font-weight: 500;
+    letter-spacing: .55em; text-transform: uppercase;
+    color: #71838B;
+    margin-bottom: 4.5vh;
+  }
+  .slide-h1 {
+    margin: 0;
+    font-size: clamp(44px, 6.2vw, 92px);
+    font-weight: 300; letter-spacing: -.01em; line-height: 1.12;
+    color: #F2EFE9;
+  }
+  .slide-lede {
+    margin-top: 3.5vh;
+    max-width: 62vw;
+    font-size: clamp(18px, 1.8vw, 27px);
+    font-weight: 300; line-height: 1.5;
+    color: #9FAEB3;
+  }
+  .slide-foot {
+    margin-top: auto; padding-top: 4vh;
+    display: flex; align-items: baseline; gap: 22px;
+    font-size: clamp(16px, 1.5vw, 22px); color: #9FAEB3;
+  }
+  .slide-foot .accent { color: #52C296; font-weight: 500; }
+  .slide-foot em { font-style: italic; }
+  /* from -> to rows */
+  .fromto { margin-top: 2vh; }
+  .fromto-row {
+    display: grid; grid-template-columns: 1fr 56px 1.3fr;
+    align-items: center; gap: 2vw;
+    padding: 2.4vh 0;
+    border-bottom: 1px solid rgba(242, 239, 233, .08);
+    font-size: clamp(17px, 1.7vw, 26px); font-weight: 300;
+  }
+  .fromto-row:last-child { border-bottom: 0; }
+  .fromto-row .from { color: #8C9BA1; }
+  .fromto-row .arr { color: #E8A33D; font-size: 1.2em; text-align: center; }
+  .fromto-row .to { color: #E5E2DA; }
+  /* term + description rows */
+  .terms { margin-top: 2vh; }
+  .term-row {
+    display: grid; grid-template-columns: 1fr 1.6fr;
+    gap: 3vw;
+    padding: 3vh 0;
+    border-bottom: 1px solid rgba(242, 239, 233, .08);
+  }
+  .term-row:last-child { border-bottom: 0; }
+  .term-row .term { font-size: clamp(18px, 1.9vw, 28px); font-weight: 300; color: #E5E2DA; }
+  .term-row .desc { font-size: clamp(15px, 1.45vw, 21px); font-weight: 300; line-height: 1.55; color: #8C9BA1; }
+  /* card row (3-up) and 2x2 grid */
+  .cards3 {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 2vw; margin-top: 3vh;
+  }
+  .deck-card {
+    background: #2C3B42; border-radius: 16px;
+    padding: 3.4vh 2.2vw 4vh;
+  }
+  .deck-card h3 { margin: 0 0 2vh; font-size: clamp(17px, 1.7vw, 25px); font-weight: 500; color: #E5E2DA; }
+  .deck-card p { margin: 0; font-size: clamp(14px, 1.35vw, 20px); font-weight: 300; line-height: 1.55; color: #93A2A8; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    margin-top: 1vh;
+  }
+  .grid2x2 > div { padding: 4vh 3vw 4vh 0; }
+  .grid2x2 > div:nth-child(2n) { border-left: 1px solid rgba(242, 239, 233, .08); padding-left: 3vw; padding-right: 0; }
+  .grid2x2 > div:nth-child(n+3) { border-top: 1px solid rgba(242, 239, 233, .08); }
+  .grid2x2 h3 { margin: 0 0 1.6vh; font-size: clamp(22px, 2.4vw, 36px); font-weight: 300; color: #E5E2DA; }
+  .grid2x2 p { margin: 0; font-size: clamp(14px, 1.4vw, 20px); font-weight: 300; line-height: 1.55; color: #8C9BA1; }
+  /* two-panel THEN / NOW comparison with chips */
+  .cols2 {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 2.4vw; margin-top: 3vh;
+  }
+  .deck-panel {
+    background: #2C3B42; border-radius: 16px;
+    padding: 3.6vh 2.4vw 4vh;
+  }
+  .deck-panel .panel-label {
+    font-size: clamp(13px, 1.2vw, 17px); font-weight: 700;
+    letter-spacing: .06em;
+    margin-bottom: 3vh;
+  }
+  .deck-panel .panel-label.then { color: #E8A33D; }
+  .deck-panel .panel-label.now { color: #52C296; }
+  .deck-panel .panel-line { font-size: clamp(15px, 1.5vw, 22px); font-weight: 300; color: #C9CFC9; margin-bottom: 2.4vh; }
+  .deck-chips { display: flex; flex-wrap: wrap; gap: 1.2vh 1vw; margin-bottom: 3vh; }
+  .deck-chip {
+    background: #37474F; border-radius: 999px;
+    padding: 1.3vh 1.6vw;
+    font-size: clamp(13px, 1.3vw, 19px); font-weight: 300; color: #DDE3DD;
+    white-space: nowrap;
+  }
+  .deck-panel .panel-note { font-size: clamp(13px, 1.3vw, 19px); font-weight: 300; line-height: 1.55; color: #8C9BA1; }
+  /* chrome: slide counter + key hints */
+  .deck-chrome {
+    position: absolute; left: 7vw; right: 7vw; bottom: 3.2vh;
+    display: flex; justify-content: space-between;
+    font-size: 13px; letter-spacing: .12em; color: #5D6F76;
+    pointer-events: none;
+  }
+
      Gmail-style inbox the prototype starts in: the critical Adyen email's
      CTA is what leads to the sign-in screen. Sits above the sign-in screen
      (z 200) and below the passcode gate (z 300). */
@@ -1989,6 +2114,7 @@
     transition: opacity .35s ease;
   }
   .mail-screen.leaving { opacity: 0; pointer-events: none; }
+  .mail-screen.gone { display: none; }   /* parked, not removed — W restores it */
   .mail-top {
     flex-shrink: 0;
     position: relative;    /* anchors the screen-centred search pill */
@@ -2355,6 +2481,91 @@
       <div class="gate-sub">Enter the passcode to continue</div>
       <input class="gate-input" id="gate-input" type="password" inputmode="numeric"
              maxlength="4" autocomplete="off" aria-label="Passcode" />
+    </div>
+  </div>
+
+  <!-- ============ SLIDE DECK (pre-prototype presentation) ============ -->
+  <div class="deck" id="deck">
+
+    <!-- 1 · statement -->
+    <section class="slide active">
+      <div class="slide-eyebrow">Case study — Adyen Customer Area</div>
+      <h1 class="slide-h1">Orchestration,<br>not conversation.</h1>
+      <p class="slide-lede">A redesign of Adyen's Customer Area where the assistant doesn't chat about problems — it resolves them, asks permission once, and turns the fix into a reusable skill.</p>
+    </section>
+
+    <!-- 2 · from -> to -->
+    <section class="slide">
+      <div class="slide-eyebrow">The shift</div>
+      <h1 class="slide-h1">From &nbsp;&rarr;&nbsp; to</h1>
+      <div class="fromto">
+        <div class="fromto-row"><span class="from">A dashboard you read</span><span class="arr">&rarr;</span><span class="to">A workspace that acts</span></div>
+        <div class="fromto-row"><span class="from">Notifications as a list</span><span class="arr">&rarr;</span><span class="to">Notifications as cases with options</span></div>
+        <div class="fromto-row"><span class="from">Chat as a destination</span><span class="arr">&rarr;</span><span class="to">Chat as one layer over the work</span></div>
+        <div class="fromto-row"><span class="from">One-off fixes</span><span class="arr">&rarr;</span><span class="to">Fixes that become skills</span></div>
+        <div class="fromto-row"><span class="from">Trust via polish</span><span class="arr">&rarr;</span><span class="to">Trust via visibility — cards, plans, permission</span></div>
+      </div>
+    </section>
+
+    <!-- 3 · what's fading (term + description rows) -->
+    <section class="slide">
+      <div class="slide-eyebrow">Today</div>
+      <h1 class="slide-h1">What&rsquo;s fading</h1>
+      <div class="terms">
+        <div class="term-row"><span class="term">Sparkles</span><span class="desc">The era of AI as a labeled destination is ending.</span></div>
+        <div class="term-row"><span class="term">Alert fatigue</span><span class="desc">A bell full of undifferentiated red dots. Severity without a next step is just noise.</span></div>
+        <div class="term-row"><span class="term">Chat as the whole product</span><span class="desc">Breaks flow and taxes users with re-explaining context. Chat survives as one layer — not the surface everything passes through.</span></div>
+        <div class="term-row"><span class="term">Settings-page automation</span><span class="desc">Rules buried in configuration. Automation should be offered at the moment of a repeated fix, not hunted for.</span></div>
+      </div>
+    </section>
+
+    <!-- 4 · what's rising (2x2 grid) -->
+    <section class="slide">
+      <div class="slide-eyebrow">Tomorrow</div>
+      <h1 class="slide-h1">What's rising</h1>
+      <div class="grid2x2">
+        <div><h3>Embedded resolution</h3><p>The assistant lives beside the work, pulls the case up with its evidence, and acts — the dashboard stays the source of truth.</p></div>
+        <div><h3>Permission surfaces</h3><p>One structured ask at the moment of a repeated fix: allow always, ask each time, or just notify. Consent is a first-class UI object.</p></div>
+        <div><h3>Skills over settings</h3><p>A resolved case compresses into a named, reusable skill — created in the flow, visible in the rail, editable later.</p></div>
+        <div><h3>Calm, secondary AI</h3><p>Collapsible panels and contextual cards that appear only when they add value. The metric is resolution, not engagement.</p></div>
+      </div>
+    </section>
+
+    <!-- 5 · three cards -->
+    <section class="slide">
+      <div class="slide-eyebrow">The resolve flow</div>
+      <h1 class="slide-h1">Surface &middot; resolve &middot; automate</h1>
+      <div class="cards3">
+        <div class="deck-card"><h3>Surface</h3><p>A critical email lands in the inbox with the story already assembled — customer, amount, refusal, retry — and one door into the Customer Area.</p></div>
+        <div class="deck-card"><h3>Resolve</h3><p>The case opens knowing what happened. Options carry keyboard shortcuts, the chat bar continues the flow, and every action reports back as a card.</p></div>
+        <div class="deck-card"><h3>Automate</h3><p>After the fix works once, the assistant asks to own it next time. A single yes becomes a skill with a name and a badge.</p></div>
+      </div>
+      <div class="slide-foot"><span class="accent">surface &rarr; resolve &rarr; automate</span><span><em>The lifecycle of a notification, compressed into one thread.</em></span></div>
+    </section>
+
+    <!-- 6 · then / now comparison -->
+    <section class="slide">
+      <div class="slide-eyebrow">Pattern deep-dive</div>
+      <h1 class="slide-h1">No dead ends: alert &rarr; case</h1>
+      <div class="cols2">
+        <div class="deck-panel">
+          <div class="panel-label then">Then — alert + link</div>
+          <div class="panel-line">&ldquo;A payment failed.&rdquo;</div>
+          <div class="deck-chips"><span class="deck-chip">View transaction</span><span class="deck-chip">Dismiss</span></div>
+          <div class="panel-note">Severity without a next step &middot; the user does the diagnosis &middot; every recurrence costs the same effort</div>
+        </div>
+        <div class="deck-panel">
+          <div class="panel-label now">Now — case + options</div>
+          <div class="panel-line">&ldquo;Northwind's $48,000 renewal failed &mdash; card expired&rdquo; &nbsp;&rarr;&nbsp; case:</div>
+          <div class="deck-chips"><span class="deck-chip">&#8984;1 Pull up their contact</span><span class="deck-chip">&#8984;2 Send card-update link</span><span class="deck-chip">&#8984;3 Pause the retry</span></div>
+          <div class="panel-note">Evidence attached &middot; options are actions &middot; the fix can become a skill &mdash; recurrence costs one yes</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="deck-chrome">
+      <span id="deck-counter">1 / 6</span>
+      <span>&larr; &rarr; slides &nbsp;&middot;&nbsp; W prototype</span>
     </div>
   </div>
 
@@ -3478,7 +3689,7 @@
                   <div class="ai-followup-cards" id="ai-policy-cards">
                     <p class="ai-followup-offer">Great, I sent it. Next time a customer has a card expiration renewal failure want me to send the same email?</p>
                     <div class="ai-actions">
-                      <button class="ai-action" type="button">
+                      <button class="ai-action" id="ai-policy-allow" type="button">
                         <kbd class="ai-key">⌘1</kbd>
                         Allow always, don't ask again
                       </button>
@@ -4425,6 +4636,14 @@
         }, 4500);
       }
 
+      // option 1 is clickable and equivalent to typing it
+      var aiPolicyAllow = document.getElementById('ai-policy-allow');
+      if (aiPolicyAllow) {
+        aiPolicyAllow.addEventListener('click', function () {
+          if (aiPolicyArmed) runPolicyFlow("Allow always, don't ask again");
+        });
+      }
+
       // the automation ask's "Other" field routes into the same flow
       if (aiPolicyOther) {
         aiPolicyOther.addEventListener('keydown', function (e) {
@@ -4465,7 +4684,7 @@
         }
         var btn = document.getElementById('bell-resolve');
         var bellItem = btn && btn.closest('.bell-item');
-        if (bellItem) bellItem.remove();
+        if (bellItem) bellItem.style.display = 'none';   // hidden, not removed — W's restart restores it
       }
 
       // Same case from the bell dropdown's critical item — dismiss the dropdown
@@ -5109,6 +5328,72 @@
         });
       }
 
+      // --- Slide deck: W toggles deck <-> prototype (keeping your slide);
+      //     arrow keys move between slides while the deck is up. ---
+      var deck = document.getElementById('deck');
+      var deckSlides = deck.querySelectorAll('.slide');
+      var deckCounter = document.getElementById('deck-counter');
+      var deckIdx = 0;
+
+      function showSlide(i) {
+        deckIdx = Math.max(0, Math.min(deckSlides.length - 1, i));
+        deckSlides.forEach(function (s, n) { s.classList.toggle('active', n === deckIdx); });
+        deckCounter.textContent = (deckIdx + 1) + ' / ' + deckSlides.length;
+      }
+
+      // W from the deck always lands in the mock Gmail inbox. If the journey
+      // has advanced past it, rewind the whole prototype in place — no
+      // reload, so it works in any viewer.
+      function enterPrototype() {
+        if (mailScreen.classList.contains('gone')) resetPrototypeToInbox();
+        deck.classList.add('hidden');
+      }
+
+      function resetPrototypeToInbox() {
+        // gmail scene: back to the list with the critical mail unread
+        mailScreen.classList.remove('gone', 'leaving');
+        mailReadView.hidden = true;
+        mailListView.hidden = false;
+        mailCritRow.classList.add('unread');
+        // sign-in replays from its inert navy state
+        signInScreen.style.display = '';
+        signInScreen.classList.remove('hidden', 'leaving', 'fields-in', 'mark-in');
+        // app shell re-enters fresh next sign-in
+        app.classList.remove('entered', 'nav-stagger', 'entrance-done', 'bell-active',
+                             'ai-open', 'ai-full', 'ai-leaving-full', 'ai-closing');
+        aiOpenedForFull = false;
+        homePlayed = false;
+        homeView.classList.remove('play', 'settled');
+        // the critical notification is unresolved again
+        var banner = document.querySelector('.notice-banner');
+        if (banner) { banner.classList.remove('resolved'); banner.style.display = ''; }
+        var bellBtn = document.getElementById('bell-resolve');
+        var bellItem = bellBtn && bellBtn.closest('.bell-item');
+        if (bellItem) bellItem.style.display = '';
+        // panel back to its intro, flyouts shut, landing view Home
+        aiBody.classList.remove('chatting', 'casing', 'noticing', 'artifacting');
+        aiChat.innerHTML = '';
+        closeAllFlyouts();
+        if (homeRow) setActive(homeRow);
+        [settingsView, pageView, homeView].forEach(function (v) {
+          v.classList.toggle('show', v === homeView);
+        });
+      }
+
+      document.addEventListener('keydown', function (e) {
+        var t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+        if (e.key === 'w' || e.key === 'W') {
+          if (deck.classList.contains('hidden')) deck.classList.remove('hidden');
+          else enterPrototype();
+          return;
+        }
+        if (!deck.classList.contains('hidden')) {
+          if (e.key === 'ArrowRight') showSlide(deckIdx + 1);
+          else if (e.key === 'ArrowLeft') showSlide(deckIdx - 1);
+        }
+      });
+
       // --- Mail inbox: the prototype opens in Michael's inbox; the critical
       //     email's CTA is what leads to the Adyen sign-in. ---
       var mailScreen = document.getElementById('mail-screen');
@@ -5129,7 +5414,7 @@
       document.getElementById('mail-cta').addEventListener('click', function () {
         mailScreen.classList.add('leaving');     // fades to the sign-in screen
         setTimeout(function () {
-          mailScreen.remove();
+          mailScreen.classList.add('gone');      // parked so W can restore it
           startSignInIntro();
         }, 380);
       });
