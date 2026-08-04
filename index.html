@@ -1131,6 +1131,12 @@
   /* Adyen Intelligence row: lit while the panel is in full screen */
   .app.ai-full .nav-item.nav-ai { background: var(--nav-bg-active); }
 
+  /* Two IAs share the nav; clicking the org logo swaps which is live.
+     Classes are assigned at boot from the L0 labels. */
+  .app:not(.jtbd) .nav-group.ia-jtbd { display: none !important; }
+  .app.jtbd .nav-group.ia-feature { display: none !important; }
+  .org { cursor: pointer; }
+
   /* Homepage / Adyen Intelligence / Favorites read as their own cluster, set
      off from the pinnable sections by the same 24px as the org block above */
   .fav-header { margin-bottom: 24px; }
@@ -1796,6 +1802,69 @@
   .ai-art-btn svg { width: 13px; height: 13px; }
   .ai-art-btn.primary { background: #fff; border-color: var(--btn-blue); color: var(--btn-blue); }
   .ai-art-btn.primary:hover { background: var(--nav-bg-hover); }
+  /* ---------- CONNECTORS (full-screen rail page) ---------- */
+  .ai-connectors { display: none; flex-direction: column; }
+  .ai-body.connecting .ai-connectors { display: flex; }
+  .ai-body.connecting .ai-intro { display: none; }
+  .ai-body.connecting { justify-content: flex-start; }
+  .ai-conn-card {
+    background: #fff; border: 1px solid #D5DEE3; border-radius: 12px;
+    margin-top: 14px;
+  }
+  .ai-conn-head {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 14px;
+  }
+  .ai-conn-rows { border-top: 1px solid #D5DEE3; }
+  .ai-conn-mark {
+    width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: #f7f9fc; border: 1px solid #E2E9ED;
+    color: #727E85;
+  }
+  .ai-conn-mark.claude { color: #CC785C; }
+  .ai-conn-mark svg { width: 17px; height: 17px; }
+  .ai-conn-letter { font-size: 15px; font-weight: 700; }
+  .ai-conn-who { flex: 1; min-width: 0; }
+  .ai-conn-name { font-size: 13.5px; font-weight: 600; color: #2B3135; }
+  .ai-conn-sub { font-size: 12px; color: #727E85; margin-top: 1px; }
+  .ai-conn-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid #f2f5f9;
+  }
+  .ai-conn-row:last-child { border-bottom: 0; }
+  .ai-conn-row .ci {
+    width: 26px; height: 26px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #727E85; border-radius: 6px;
+  }
+  .ai-conn-row .ci:hover { background: var(--nav-bg-hover); color: #2B3135; }
+  .ai-conn-row .ci svg { width: 15px; height: 15px; }
+  .ai-conn-row .cname { flex: 1; min-width: 0; font-size: 13px; color: #2B3135; }
+  .ai-conn-row .seg { padding: 2px; }
+  .ai-conn-row .seg button {
+    padding: 4px 9px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ai-conn-row .seg button svg { width: 13px; height: 13px; display: block; }
+
+  /* ---------- SKILLS (full-screen rail page) ---------- */
+  .ai-skills { display: none; flex-direction: column; }
+  .ai-body.skilling .ai-skills { display: flex; }
+  .ai-body.skilling .ai-intro { display: none; }
+  .ai-body.skilling { justify-content: flex-start; }
+  /* the resolve flow's skill exists only after it has been created */
+  .ai-skills .sk-skill { display: none; }
+  .ai-skills.has-skill .sk-skill { display: block; }
+  .ai-skills.has-skill .sk-empty { display: none; }
+  .ai-skills-empty {
+    padding: 28px 20px; text-align: center; color: #727E85;
+  }
+  .ai-skills-empty svg { width: 22px; height: 22px; margin-bottom: 8px; }
+  .ai-skills-empty .sk-empty-title { font-size: 13.5px; font-weight: 600; color: #2B3135; margin-bottom: 4px; }
+  .ai-skills-empty p { margin: 0 auto; max-width: 340px; font-size: 12.5px; line-height: 1.5; }
+
   .ai-art-search {
     margin-top: 12px;
     display: flex; align-items: center; gap: 9px;
@@ -1816,6 +1885,8 @@
   /* Rail active states are derived from what the reading column is showing,
      so they can never drift out of sync with it */
   .ai-card:has(.ai-body.artifacting) #side-artifacts { background: var(--nav-bg-active); }
+  .ai-card:has(.ai-body.connecting) #side-connectors { background: var(--nav-bg-active); }
+  .ai-card:has(.ai-body.skilling) #side-skills { background: var(--nav-bg-active); }
   .ai-card:has(.ai-body.casing) #recent-critical { background: var(--nav-bg-active); }
 
   .ai-notices { display: none; flex-direction: column; gap: 10px; }
@@ -2000,6 +2071,7 @@
     overflow: hidden;
   }
   .slide.active { display: flex; }
+  .slide.parked { display: none !important; }   /* stored, skipped by the deck */
   .slide-eyebrow {
     font-size: 15px; font-weight: 500;
     letter-spacing: .55em; text-transform: uppercase;
@@ -2494,7 +2566,7 @@
     <section class="slide active">
       <div class="slide-eyebrow">Michael Young</div>
       <h1 class="slide-h1">Case study</h1>
-      <p class="slide-lede">Exploring a redesign of the Customer Area through a critical communication case study.</p>
+      <p class="slide-lede">Exploring a redesign of the Customer Area through a critical communication.</p>
     </section>
 
     <!-- 2 · the problem (statement + three cards) -->
@@ -2504,7 +2576,7 @@
       <div class="cards3">
         <div class="deck-card"><h3>Fragmented workflows</h3><p>Workflows that span multiple job centers show the seams in platform products, waste customers' time in moving them over artificial paths, and erode trust.</p></div>
         <div class="deck-card"><h3>Navigation built for everyone</h3><p>Navigation in products that serve multiple personas and JTBDs at their worst reflect internal team structures and incentives; at their best, they reflect customers' mental models without overwhelming.</p></div>
-        <div class="deck-card"><h3>No cohesive comms strategy</h3><p>Notifications and messaging that behave at random give customers a sense that no one is in control and a "boy who cried wolf" dismal of critical comms.</p></div>
+        <div class="deck-card"><h3>No cohesive comms strategy</h3><p>Notifications and messaging that behave at random give customers a sense that no one is in control and a "boy who cried wolf" dismissal of critical comms.</p></div>
       </div>
     </section>
 
@@ -2514,7 +2586,7 @@
       <h1 class="slide-h1">Falling in love with the problem</h1>
       <div class="cards3">
         <div class="deck-card"><h3>Gather</h3><p>Data and customer insight. Start with deeply understanding the root, not the wilting pedals.</p></div>
-        <div class="deck-card"><h3>Analyze</h3><p>Industry trends and competitive analysis across the similar industries, as well as tech advances that.</p></div>
+        <div class="deck-card"><h3>Analyze</h3><p>Our customers other tools, industry trends, competitive analysis across the similar industries, and tech advances.</p></div>
         <div class="deck-card"><h3>Explore</h3><p>Without constraints, within a two-to-three-year vision and then work backwards to the MVP.</p></div>
       </div>
     </section>
@@ -2523,7 +2595,7 @@
     <section class="slide">
       <div class="slide-eyebrow">The experience solve</div>
       <h1 class="slide-h1">Orchestration,<br>not conversation.</h1>
-      <p class="slide-lede">A redesign of Adyen's Customer Area where the assistant doesn't chat about problems — it resolves them, asks permission once, and turns the fix into a reusable skill.</p>
+      <p class="slide-lede">One end-to-end critical communication that lands as an email, opens into a case with the evidence attached, and gets resolved and followed up in the customer's own voice where a single permission turns the fix into a reusable skill that will handle the next one.</p>
     </section>
 
     <!-- 2 · from -> to -->
@@ -2535,7 +2607,7 @@
         <div class="fromto-row"><span class="from">Notifications as a list</span><span class="arr">&rarr;</span><span class="to">Notifications as cases with options</span></div>
         <div class="fromto-row"><span class="from">Chat as a destination</span><span class="arr">&rarr;</span><span class="to">Chat as one layer over the work</span></div>
         <div class="fromto-row"><span class="from">One-off fixes</span><span class="arr">&rarr;</span><span class="to">Fixes that become skills</span></div>
-        <div class="fromto-row"><span class="from">Trust via polish</span><span class="arr">&rarr;</span><span class="to">Trust via visibility — cards, plans, permission</span></div>
+        <div class="fromto-row"><span class="from">Trust via polish</span><span class="arr">&rarr;</span><span class="to">Trust via visibility (evidence, plans, permission)</span></div>
       </div>
     </section>
 
@@ -2555,16 +2627,16 @@
     <section class="slide">
       <div class="slide-eyebrow">Tomorrow</div>
       <h1 class="slide-h1">What's rising</h1>
-      <div class="grid2x2">
-        <div><h3>Embedded resolution</h3><p>The assistant lives beside the work, pulls the case up with its evidence, and acts — the dashboard stays the source of truth.</p></div>
-        <div><h3>Permission surfaces</h3><p>One structured ask at the moment of a repeated fix: allow always, ask each time, or just notify. Consent is a first-class UI object.</p></div>
-        <div><h3>Skills over settings</h3><p>A resolved case compresses into a named, reusable skill — created in the flow, visible in the rail, editable later.</p></div>
-        <div><h3>Calm, secondary AI</h3><p>Collapsible panels and contextual cards that appear only when they add value. The metric is resolution, not engagement.</p></div>
+      <div class="terms">
+        <div class="term-row"><span class="term">Embedded resolution</span><span class="desc">Assistance lives beside the work, pulls the case up with evidence, and acts. Classic objects, like dashboards and tables, stay the source of truth.</span></div>
+        <div class="term-row"><span class="term">Permission surfaces</span><span class="desc">One structured ask at the moment of a repeated fix: allow always, ask each time, or just notify. Consent is a first-class UI object.</span></div>
+        <div class="term-row"><span class="term">Skills over settings</span><span class="desc">A resolved case compresses into a named, reusable skill created in the flow, visible in the rail, and editable later.</span></div>
+        <div class="term-row"><span class="term">Calm, secondary AI</span><span class="desc">No more "Hey, I'm Addie! Let's go!!" But collapsible panels and contextual cards that appear only when they add value. The metric is resolution, not engagement.</span></div>
       </div>
     </section>
 
-    <!-- 5 · three cards -->
-    <section class="slide">
+    <!-- parked: remove the `parked` class to bring this slide back -->
+    <section class="slide parked">
       <div class="slide-eyebrow">The resolve flow</div>
       <h1 class="slide-h1">Surface &middot; resolve &middot; automate</h1>
       <div class="cards3">
@@ -2575,8 +2647,8 @@
       <div class="slide-foot"><span class="accent">surface &rarr; resolve &rarr; automate</span><span><em>The lifecycle of a notification, compressed into one thread.</em></span></div>
     </section>
 
-    <!-- 6 · then / now comparison -->
-    <section class="slide">
+    <!-- parked: remove the `parked` class to bring this slide back -->
+    <section class="slide parked">
       <div class="slide-eyebrow">Pattern deep-dive</div>
       <h1 class="slide-h1">No dead ends: alert &rarr; case</h1>
       <div class="cols2">
@@ -2599,11 +2671,10 @@
     <section class="slide">
       <div class="slide-eyebrow">Measuring success</div>
       <h1 class="slide-h1">What we'd watch</h1>
-      <div class="grid2x2">
-        <div><h3>Findability</h3><p>Task completion rates and navigation metrics.</p></div>
-        <div><h3>Efficiency</h3><p>Bounce rates, time to benefit, and hover-to-click.</p></div>
-        <div><h3>Adoption</h3><p>Engagement with L0s and customization rates.</p></div>
-        <div><h3>Resolution</h3><p>Engagement with communications and resolution rates compared to baseline.</p></div>
+      <div class="terms">
+        <div class="term-row"><span class="term">Resolution</span><span class="desc">Engagement with communications and resolution rates compared to baseline.</span></div>
+        <div class="term-row"><span class="term">Findability</span><span class="desc">Task completion rates and navigation metrics.</span></div>
+        <div class="term-row"><span class="term">Efficiency</span><span class="desc">Bounce rates, time to benefit, and hover-to-click.</span></div>
       </div>
     </section>
 
@@ -2970,6 +3041,51 @@
               <div class="nav-item l0">
                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21C7 17 3 13.5 3 9.5A3.5 3.5 0 019.5 7l2.5 2.5L14.5 7A3.5 3.5 0 0121 9.5c0 4-4 7.5-9 11.5z"/></svg>
                 <span class="label">Giving</span>
+              </div>
+              <ul class="l1-list"></ul>
+            </li>
+
+            <!-- JTBD IA: the alternate verb-first nav, toggled by clicking the
+                 org logo. Hidden unless .app.jtbd; groups classified at boot. -->
+            <li class="nav-group">
+              <div class="nav-item l0">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="9" x2="9" y2="20"/></svg>
+                <span class="label">Get paid</span>
+              </div>
+              <ul class="l1-list"></ul>
+            </li>
+            <li class="nav-group">
+              <div class="nav-item l0">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6z"/></svg>
+                <span class="label">Protect revenue</span>
+              </div>
+              <ul class="l1-list"></ul>
+            </li>
+            <li class="nav-group">
+              <div class="nav-item l0">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 015 0c0 2.5-5 1.5-5 4a2.5 2.5 0 005 0"/></svg>
+                <span class="label">Manage money</span>
+              </div>
+              <ul class="l1-list"></ul>
+            </li>
+            <li class="nav-group">
+              <div class="nav-item l0">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="18" y1="20" x2="18" y2="4"/></svg>
+                <span class="label">Track performance</span>
+              </div>
+              <ul class="l1-list"></ul>
+            </li>
+            <li class="nav-group">
+              <div class="nav-item l0">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9l1-4h14l1 4"/><path d="M4 9v11h16V9"/><path d="M4 9a2.5 2.5 0 005 0 2.5 2.5 0 005 0 2.5 2.5 0 005 0"/><rect x="9" y="14" width="6" height="6"/></svg>
+                <span class="label">Run your stores</span>
+              </div>
+              <ul class="l1-list"></ul>
+            </li>
+            <li class="nav-group">
+              <div class="nav-item l0">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 8 9 12 5 16"/><line x1="12" y1="16" x2="19" y2="16"/></svg>
+                <span class="label">Build &amp; integrate</span>
               </div>
               <ul class="l1-list"></ul>
             </li>
@@ -3375,15 +3491,11 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span>Artifacts</span>
               </button>
-              <button class="ai-side-item" type="button">
+              <button class="ai-side-item" id="side-connectors" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/><path d="M12 17v5"/></svg>
                 <span>Connectors</span>
               </button>
-              <button class="ai-side-item" type="button">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h11"/><circle cx="18" cy="7" r="2.4"/><path d="M20 17H9"/><circle cx="6" cy="17" r="2.4"/></svg>
-                <span>Automations</span>
-              </button>
-              <button class="ai-side-item" type="button">
+              <button class="ai-side-item" id="side-skills" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
                 <span>Skills</span>
               </button>
@@ -3478,11 +3590,11 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v15H6z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <span>Artifacts</span>
               </button>
-              <button class="ahd-row" type="button">
+              <button class="ahd-row" data-act="connectors" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/><path d="M12 17v5"/></svg>
                 <span>Connectors</span>
               </button>
-              <button class="ahd-row" type="button">
+              <button class="ahd-row" data-act="skills" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
                 <span>Skills</span>
               </button>
@@ -3589,6 +3701,138 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.3" y2="16.3"/></svg>
               <input type="text" placeholder="Search artifacts" aria-label="Search artifacts" />
             </label>
+          </div>
+
+          <!-- connectors: MCPs with access to this Adyen account, shown from the rail -->
+          <div class="ai-connectors">
+            <div class="ai-art-head">
+              <h2 class="ai-art-title">Connectors</h2>
+              <button class="ai-art-btn primary" type="button">Add connector</button>
+            </div>
+
+            <div class="ai-conn-card">
+              <div class="ai-conn-head">
+                <span class="ai-conn-mark claude">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="3" x2="12" y2="21"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="5.6" y1="5.6" x2="18.4" y2="18.4"/><line x1="18.4" y1="5.6" x2="5.6" y2="18.4"/></svg>
+                </span>
+                <div class="ai-conn-who">
+                  <div class="ai-conn-name">Claude</div>
+                  <div class="ai-conn-sub">Anthropic &middot; MCP</div>
+                </div>
+                <span class="ai-status-badge skill">Connected</span>
+              </div>
+              <div class="ai-conn-rows">
+                <div class="ai-conn-row">
+                  <span class="ci tip" data-tip="Query transactions, balances, and reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </span>
+                  <span class="cname">Read payments data</span>
+                  <div class="seg">
+                    <button type="button" class="tip" data-tip="Never"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <button type="button" class="tip" data-tip="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6A8 8 0 0 0 12 22a8 8 0 0 0 8-8V7a2 2 0 0 0-4 0v5"/></svg></button>
+                    <button type="button" class="tip on" data-tip="Always"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  </div>
+                </div>
+                <div class="ai-conn-row">
+                  <span class="ci tip" data-tip="Open and act on critical cases">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.1V12a10 10 0 11-5.9-9.1"/><polyline points="22 4 12 14 9 11"/></svg>
+                  </span>
+                  <span class="cname">Resolve notifications</span>
+                  <div class="seg">
+                    <button type="button" class="tip" data-tip="Never"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <button type="button" class="tip on" data-tip="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6A8 8 0 0 0 12 22a8 8 0 0 0 8-8V7a2 2 0 0 0-4 0v5"/></svg></button>
+                    <button type="button" class="tip" data-tip="Always"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  </div>
+                </div>
+                <div class="ai-conn-row">
+                  <span class="ci tip" data-tip="Email customers on your behalf">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </span>
+                  <span class="cname">Send communications</span>
+                  <div class="seg">
+                    <button type="button" class="tip" data-tip="Never"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <button type="button" class="tip" data-tip="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6A8 8 0 0 0 12 22a8 8 0 0 0 8-8V7a2 2 0 0 0-4 0v5"/></svg></button>
+                    <button type="button" class="tip on" data-tip="Always"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  </div>
+                </div>
+                <div class="ai-conn-row">
+                  <span class="ci tip" data-tip="Pause retries and trigger refunds">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.5 15a9 9 0 102.1-9.4L1 10"/></svg>
+                  </span>
+                  <span class="cname">Manage retries &amp; refunds</span>
+                  <div class="seg">
+                    <button type="button" class="tip" data-tip="Never"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <button type="button" class="tip on" data-tip="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6A8 8 0 0 0 12 22a8 8 0 0 0 8-8V7a2 2 0 0 0-4 0v5"/></svg></button>
+                    <button type="button" class="tip" data-tip="Always"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  </div>
+                </div>
+                <div class="ai-conn-row">
+                  <span class="ci tip" data-tip="Save reusable automations">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
+                  </span>
+                  <span class="cname">Create skills</span>
+                  <div class="seg">
+                    <button type="button" class="tip" data-tip="Never"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <button type="button" class="tip on" data-tip="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6A8 8 0 0 0 12 22a8 8 0 0 0 8-8V7a2 2 0 0 0-4 0v5"/></svg></button>
+                    <button type="button" class="tip" data-tip="Always"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="ai-conn-card">
+              <div class="ai-conn-head">
+                <span class="ai-conn-mark"><span class="ai-conn-letter">N</span></span>
+                <div class="ai-conn-who">
+                  <div class="ai-conn-name">NetSuite</div>
+                  <div class="ai-conn-sub">Oracle &middot; MCP</div>
+                </div>
+                <button class="ai-art-btn" type="button">Connect</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- skills: reusable automations; the resolve flow's skill appears
+               here once it has been created -->
+          <div class="ai-skills">
+            <div class="ai-art-head">
+              <h2 class="ai-art-title">Skills</h2>
+              <button class="ai-art-btn primary" type="button">New skill</button>
+            </div>
+
+            <div class="ai-conn-card sk-empty">
+              <div class="ai-skills-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
+                <div class="sk-empty-title">No skills yet</div>
+                <p>Resolve an issue and tell Orchestrator to handle it next time &mdash; it will live here as a reusable skill.</p>
+              </div>
+            </div>
+
+            <div class="ai-conn-card sk-skill">
+              <div class="ai-conn-head">
+                <span class="ai-conn-mark">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/></svg>
+                </span>
+                <div class="ai-conn-who">
+                  <div class="ai-conn-name">Expired card on renewal</div>
+                  <div class="ai-conn-sub">Created from Critical notification &middot; 8/12/26</div>
+                </div>
+                <span class="ai-status-badge skill">Active</span>
+              </div>
+              <div class="ai-conn-rows">
+                <div class="ai-conn-row">
+                  <span class="ci tip" data-tip="Emails the billing contact after the automatic update link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  </span>
+                  <span class="cname">Send follow-up email</span>
+                  <div class="seg">
+                    <button type="button" class="tip" data-tip="Never"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                    <button type="button" class="tip" data-tip="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="m7 15-1.76-1.76a2 2 0 0 0-2.83 2.82l3.6 3.6A8 8 0 0 0 12 22a8 8 0 0 0 8-8V7a2 2 0 0 0-4 0v5"/></svg></button>
+                    <button type="button" class="tip on" data-tip="Always"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- pre-seeded case: opens already knowing what happened -->
@@ -3955,7 +4199,14 @@
         'In-person payments': ['Android', 'Orders and returns', 'Stores', 'Terminal settings', 'Terminals', 'Tap to Pay & card reader', 'Terminal software', 'Themes'],
         'Pay by Link': ['Payment links', 'Themes', 'Settings'],
         'Developers': ['Dashboard', 'API credentials', 'API logs', 'API URLs', 'Additional data', 'Webhooks'],
-        'Giving': ['Campaigns']
+        'Giving': ['Campaigns'],
+        // JTBD IA — every current L1 reassigned to a verb-first, persona-anchored L0
+        'Get paid': ['Payments', 'Offers', 'Payment links', 'Link themes', 'Link settings', 'Giving campaigns'],
+        'Protect revenue': ['Disputes', 'Case management', 'Risk profiles', 'Risk lists', 'Risk fields', 'Dynamic 3D Secure', 'Risk settings', 'Risk & dispute management', 'Card monitoring program'],
+        'Manage money': ['Balances', 'Payout accounts', 'Payout model', 'Sales to payouts', 'Invoice overview', 'MPL', 'Reporting manager', 'UK PSR report'],
+        'Track performance': ['Payment lifecycle', 'Performance comparison', 'Shopper origin', 'Omnichannel shoppers', 'Uplift overview', 'Experiments', 'Scheduled reports', 'Downloads', 'Report columns'],
+        'Run your stores': ['Stores', 'Terminals', 'Terminal settings', 'Terminal software', 'Android', 'Tap to Pay & card reader', 'Themes', 'Orders and returns'],
+        'Build & integrate': ['Dashboard', 'API credentials', 'API logs', 'API URLs', 'Additional data', 'Webhooks']
       };
 
       function esc(s) { return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
@@ -4045,6 +4296,14 @@
       // Authored order, so re-pinning drops a section back where it started
       pinnable.forEach(function (li, i) { li.dataset.order = i; });
 
+      // Which IA each group belongs to — the org-logo toggle swaps them
+      var JTBD_L0S = ['Get paid', 'Protect revenue', 'Manage money',
+                      'Track performance', 'Run your stores', 'Build & integrate'];
+      pinnable.forEach(function (li) {
+        var label = li.querySelector('.l0 .label').textContent.trim();
+        li.classList.add(JTBD_L0S.indexOf(label) !== -1 ? 'ia-jtbd' : 'ia-feature');
+      });
+
       function syncPin(li) {
         var btn = li.querySelector('.pin');
         var hidden = li.classList.contains('unpinned');
@@ -4052,7 +4311,10 @@
       }
 
       function syncDrawer() {
-        showAll.style.display = hiddenList.children.length ? '' : 'none';
+        // only unpinned groups from the ACTIVE IA justify showing the drawer
+        var jtbd = document.querySelector('.app').classList.contains('jtbd');
+        var any = hiddenList.querySelector('.nav-group.' + (jtbd ? 'ia-jtbd' : 'ia-feature'));
+        showAll.style.display = any ? '' : 'none';
       }
 
       function unpin(li) {
@@ -4107,6 +4369,15 @@
       // Mac gets the larger bottom-right radius to match the browser window
       if (/Macintosh|Mac OS X/i.test(navigator.userAgent)) {
         document.documentElement.classList.add('is-mac');
+      }
+
+      // Clicking the org logo swaps between the feature IA and the JTBD IA
+      var orgRow = document.querySelector('.sidebar .org');
+      if (orgRow) {
+        orgRow.addEventListener('click', function () {
+          app.classList.toggle('jtbd');
+          syncDrawer();
+        });
       }
 
       var collapseBtn = document.querySelector('.tb-left .tb-icon');
@@ -4414,11 +4685,17 @@
       var aiAttnFollowup = document.getElementById('ai-attn-followup');
       var aiAttnCards = document.getElementById('ai-attn-cards');
 
+      // One body mode at a time; null clears back to the intro
+      var AI_MODES = ['chatting', 'casing', 'noticing', 'artifacting', 'connecting', 'skilling'];
+      function setAiMode(mode) {
+        AI_MODES.forEach(function (m) { if (m !== mode) aiBody.classList.remove(m); });
+        if (mode) aiBody.classList.add(mode);
+      }
+
       function openAiCase() {
         openAiPanel();
         aiChat.innerHTML = '';
-        aiBody.classList.remove('chatting', 'noticing', 'artifacting');
-        aiBody.classList.add('casing');
+        setAiMode('casing');
         aiFollowup.classList.remove('visible');
         aiFollowupCards.classList.remove('cards-in');
         aiCaseAsk.classList.remove('visible');
@@ -4653,6 +4930,9 @@
         aiPolicyT2 = setTimeout(function () {
           aiSkillCards.classList.add('cards-in');
           aiAttnArmed = true;                    // "what else?" is next
+          // the skill now exists — the Skills page shows it from here on
+          var skillsView = document.querySelector('.ai-skills');
+          if (skillsView) skillsView.classList.add('has-skill');
           pinAiBottom(750);
         }, 8200);
         aiThinkTimeout = setTimeout(function () {
@@ -4793,8 +5073,7 @@
           if (item.dataset.act === 'viewall') {
             openAiPanel();
             aiChat.innerHTML = '';
-            aiBody.classList.remove('chatting', 'casing', 'artifacting');
-            aiBody.classList.add('noticing');
+            setAiMode('noticing');
           } else if (item.dataset.act === 'dismiss') {
             // banner rolls back up, same motion as resolving it; the bell
             // item stays — dismissed is not resolved
@@ -4814,17 +5093,32 @@
       // --- Full-screen rail: Artifacts page, new chat, recent shortcuts ---
       var sideArtifacts = document.getElementById('side-artifacts');
       var sideNew = document.getElementById('side-new');
+      // permission segments on the connector rows
+      document.querySelectorAll('.ai-conn-row .seg').forEach(function (seg) {
+        seg.addEventListener('click', function (e) {
+          var b = e.target.closest('button');
+          if (!b) return;
+          seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+          b.classList.add('on');
+        });
+      });
+
       var recentCritical = document.getElementById('recent-critical');
       if (sideArtifacts) {
-        sideArtifacts.addEventListener('click', function () {
-          aiBody.classList.remove('chatting', 'casing', 'noticing');
-          aiBody.classList.add('artifacting');
-        });
+        sideArtifacts.addEventListener('click', function () { setAiMode('artifacting'); });
+      }
+      var sideConnectors = document.getElementById('side-connectors');
+      if (sideConnectors) {
+        sideConnectors.addEventListener('click', function () { setAiMode('connecting'); });
+      }
+      var sideSkills = document.getElementById('side-skills');
+      if (sideSkills) {
+        sideSkills.addEventListener('click', function () { setAiMode('skilling'); });
       }
       if (sideNew) {
         sideNew.addEventListener('click', function () {
           aiChat.innerHTML = '';
-          aiBody.classList.remove('chatting', 'casing', 'noticing', 'artifacting');
+          setAiMode(null);
         });
       }
       if (recentCritical) {
@@ -5002,8 +5296,7 @@
         b.querySelector('.ai-msg-text').textContent = response;
         aiChat.appendChild(u);
         aiChat.appendChild(b);
-        aiBody.classList.remove('casing', 'noticing', 'artifacting');
-        aiBody.classList.add('chatting');
+        setAiMode('chatting');
         aiBody.scrollTop = aiBody.scrollHeight;
         if (isNewChat) addRecentChat(query);
       }
@@ -5084,11 +5377,14 @@
           closeHeadDrops();
           if (row.dataset.act === 'new') {
             aiChat.innerHTML = '';
-            aiBody.classList.remove('chatting', 'casing', 'noticing', 'artifacting');
+            setAiMode(null);
             playAiIntro();
           } else if (row.dataset.act === 'artifacts') {
-            aiBody.classList.remove('chatting', 'casing', 'noticing');
-            aiBody.classList.add('artifacting');
+            setAiMode('artifacting');
+          } else if (row.dataset.act === 'connectors') {
+            setAiMode('connecting');
+          } else if (row.dataset.act === 'skills') {
+            setAiMode('skilling');
           }
         });
         aiChatsDrop.addEventListener('click', function (e) {
@@ -5435,7 +5731,7 @@
       // --- Slide deck: W toggles deck <-> prototype (keeping your slide);
       //     arrow keys move between slides while the deck is up. ---
       var deck = document.getElementById('deck');
-      var deckSlides = deck.querySelectorAll('.slide');
+      var deckSlides = deck.querySelectorAll('.slide:not(.parked)');
       var deckCounter = document.getElementById('deck-counter');
       var deckIdx = 0;
 
@@ -5476,8 +5772,10 @@
         var bellItem = bellBtn && bellBtn.closest('.bell-item');
         if (bellItem) bellItem.style.display = '';
         // panel back to its intro, flyouts shut, landing view Home
-        aiBody.classList.remove('chatting', 'casing', 'noticing', 'artifacting');
+        setAiMode(null);
         aiChat.innerHTML = '';
+        var skillsView = document.querySelector('.ai-skills');
+        if (skillsView) skillsView.classList.remove('has-skill');   // skill un-created on rewind
         closeAllFlyouts();
         if (homeRow) setActive(homeRow);
         [settingsView, pageView, homeView].forEach(function (v) {
