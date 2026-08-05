@@ -597,6 +597,13 @@
   #ai-attn-cards .ai-step-label { margin-top: 16px; }
   /* two cards + prompt + options outgrow the default 640px rollup cap */
   #ai-attn-cards.cards-in { max-height: 900px; }
+  /* the automation ask's options retire once answered, same motion as the
+     first resolve step's options */
+  #ai-policy-cards .ai-actions {
+    max-height: 400px; overflow: hidden;
+    transition: max-height .45s cubic-bezier(.4, 0, .2, 1), opacity .3s ease, margin-top .45s cubic-bezier(.4, 0, .2, 1);
+  }
+  #ai-policy-cards.answered .ai-actions { max-height: 0; opacity: 0; margin-top: 0; }
 
   /* drafted follow-up email, presented as a card with a copy affordance */
   .ai-email-card {
@@ -669,6 +676,7 @@
   }
   .ai-retry-btn:hover { background: #f1f4f9; }
   .ai-retry-btn svg { width: 14px; height: 14px; color: var(--btn-blue); }
+  .ai-retry-after { font-size: 12.5px; color: #727E85; flex-shrink: 0; }
   .ai-retry-field {
     flex: 1; border: none; border-bottom: 1px solid #cdd4e0;
     padding: 6px 0; font: inherit; font-size: 12.5px; color: #2B3135;
@@ -1823,6 +1831,8 @@
     color: #727E85;
   }
   .ai-conn-mark.claude { color: #CC785C; }
+  .ai-conn-mark.salesforce { color: #00A1E0; }
+  .ai-conn-mark.salesforce svg { width: 20px; height: 20px; }
   .ai-conn-mark svg { width: 17px; height: 17px; }
   .ai-conn-letter { font-size: 15px; font-weight: 700; }
   .ai-conn-who { flex: 1; min-width: 0; }
@@ -2122,6 +2132,10 @@
   .term-row:last-child { border-bottom: 0; }
   .term-row .term { font-size: clamp(18px, 1.9vw, 28px); font-weight: 300; color: #E5E2DA; }
   .term-row .desc { font-size: clamp(15px, 1.45vw, 21px); font-weight: 300; line-height: 1.55; color: #8C9BA1; }
+  /* one primary metric, the rest read as supporting */
+  .term-row.primary { padding: 4.5vh 0 5vh; }
+  .term-row.primary .term { font-size: clamp(26px, 2.9vw, 44px); color: #E8A33D; }
+  .term-row.primary .desc { font-size: clamp(17px, 1.7vw, 25px); color: #C9CFC9; }
   /* card row (3-up) and 2x2 grid */
   .cards3 {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -2672,9 +2686,10 @@
       <div class="slide-eyebrow">Measuring success</div>
       <h1 class="slide-h1">What we'd watch</h1>
       <div class="terms">
-        <div class="term-row"><span class="term">Resolution</span><span class="desc">Engagement with communications and resolution rates compared to baseline.</span></div>
-        <div class="term-row"><span class="term">Findability</span><span class="desc">Task completion rates and navigation metrics.</span></div>
-        <div class="term-row"><span class="term">Efficiency</span><span class="desc">Bounce rates, time to benefit, and hover-to-click.</span></div>
+        <div class="term-row primary"><span class="term">Resolution</span><span class="desc">Time from notification to resolved case, share of criticals closed before the retry window, and revenue recovered vs baseline.</span></div>
+        <div class="term-row"><span class="term">Efficiency</span><span class="desc">Navigation metrics like back-tracking, hover-to-click, and search-fallback rate.</span></div>
+        <div class="term-row"><span class="term">Effort</span><span class="desc">One-session completion, steps to resolve, and job centers crossed compared to today's path.</span></div>
+        <div class="term-row"><span class="term">Trust</span><span class="desc">Permission movement over time from Ask to Always vs reversals.</span></div>
       </div>
     </section>
 
@@ -3782,6 +3797,19 @@
 
             <div class="ai-conn-card">
               <div class="ai-conn-head">
+                <span class="ai-conn-mark salesforce">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10.1 6.6a4.1 4.1 0 013.1-1.4c1.5 0 2.8.8 3.5 2a3.6 3.6 0 011.6-.4 3.7 3.7 0 013.7 3.7 3.7 3.7 0 01-3.7 3.7c-.3 0-.6 0-.9-.1a3.4 3.4 0 01-3 1.8c-.5 0-1-.1-1.4-.3a3.9 3.9 0 01-3.6 2.4 3.9 3.9 0 01-3.7-2.6 3.3 3.3 0 01-.7.1A3.6 3.6 0 012 11.8a3.6 3.6 0 015.2-3.2 4.1 4.1 0 012.9-2z"/></svg>
+                </span>
+                <div class="ai-conn-who">
+                  <div class="ai-conn-name">Salesforce</div>
+                  <div class="ai-conn-sub">CRM &middot; MCP</div>
+                </div>
+                <button class="ai-art-btn" type="button">Connect</button>
+              </div>
+            </div>
+
+            <div class="ai-conn-card">
+              <div class="ai-conn-head">
                 <span class="ai-conn-mark"><span class="ai-conn-letter">N</span></span>
                 <div class="ai-conn-who">
                   <div class="ai-conn-name">NetSuite</div>
@@ -3921,6 +3949,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         Resume retries
                       </button>
+                      <span class="ai-retry-after">after</span>
                       <input class="ai-retry-field" type="text" placeholder="Retry in 7 days" value="7 days" />
                     </div>
                   </div>
@@ -4712,7 +4741,7 @@
         aiSentAsk.innerHTML = '';
         aiPolicyArmed = false;
         aiPolicyFollowup.classList.remove('visible');
-        aiPolicyCards.classList.remove('cards-in');
+        aiPolicyCards.classList.remove('cards-in', 'answered');
         aiSkillCards.classList.remove('cards-in');
         aiPolicyAsk.classList.remove('visible');
         aiPolicyAsk.innerHTML = '';
@@ -4902,6 +4931,7 @@
       // the saved skill — and only then is "what else?" on the table.
       function runPolicyFlow(text) {
         aiPolicyArmed = false;
+        aiPolicyCards.classList.add('answered');   // options retire on choice
         aiPolicyAsk.innerHTML = '<span></span>';
         aiPolicyAsk.querySelector('span').textContent = text;
         aiPolicyAsk.classList.add('visible');
